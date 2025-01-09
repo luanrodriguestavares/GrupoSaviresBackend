@@ -20,9 +20,8 @@ const chatRoutes = require('./routes/chatRoutes');
 const app = express();
 const server = http.createServer(app);
 
-// Configuração do CORS para permitir todas as origens
 const corsOptions = {
-    origin: '*', // Permite todas as origens
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
@@ -34,13 +33,11 @@ app.get('/api/test', (req, res) => {
     res.send('Hello World');
 });
 
-// Configuração do Socket.IO com CORS
 const io = socketIo(server, {
     cors: corsOptions
 });
 setupSocketIO(io);
 
-// Configuração do Swagger
 const swaggerOptions = {
     definition: {
         openapi: '3.0.0',
@@ -61,7 +58,6 @@ const swaggerOptions = {
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// Configuração das rotas
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/projects', projectRoutes);
@@ -69,13 +65,10 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/tools', toolRoutes);
 app.use('/api/chat', chatRoutes);
 
-// Define o IO para ser usado em rotas
 app.set('io', io);
 
-// Middleware para lidar com erros
 app.use(errorHandler);
 
-// Configuração do banco de dados
 sequelize.sync({ alter: true })
     .then(() => {
         console.log('Database connected and tables are up to date');
@@ -84,10 +77,9 @@ sequelize.sync({ alter: true })
         console.error('Unable to connect to the database:', err);
     });
 
-// Porta e IP para escutar conexões na rede local
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, '192.168.0.10', () => {
-    console.log(`Server running at http://192.168.0.10:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running at http://localhost:${PORT}`);
 });
 
 module.exports = { app, server };
