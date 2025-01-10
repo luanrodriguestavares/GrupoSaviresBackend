@@ -78,8 +78,8 @@ sequelize.sync({ alter: true })
     });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+server.listen(PORT, '192.168.0.2', () => {
+    console.log(`Server running at http://192.168.0.2:${PORT}`);
 });
 
 module.exports = { app, server };

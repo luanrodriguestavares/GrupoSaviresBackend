@@ -48,7 +48,11 @@ exports.login = async (req, res) => {
 };
 
 exports.register = async (req, res) => {
-    const { username, phoneNumber, password, jobTitle, userType, profilePicture } = req.body;
+    const { username, phoneNumber, password, jobTitle, userType } = req.body;
+
+    if (req.user.userType !== 'engineer') {
+        return res.status(403).json({ message: 'Only engineers can create new users' });
+    }
 
     try {
         const newUser = await User.create({
@@ -57,12 +61,11 @@ exports.register = async (req, res) => {
             password,
             jobTitle,
             userType,
-            profilePicture,
         });
 
         res.status(201).json({ message: 'User registered successfully', userId: newUser.id });
     } catch (error) {
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
 

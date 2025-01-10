@@ -5,7 +5,7 @@ const { authenticate, authorizeEngineer } = require('../middleware/authMiddlewar
 const router = express.Router();
 
 router.post('/login', login);
-router.post('/register', register);
+router.post('/register', register, authenticate, authorizeEngineer);
 
 module.exports = router;
 

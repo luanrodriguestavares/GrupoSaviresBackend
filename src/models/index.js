@@ -8,9 +8,6 @@ const Project = require('./Project');
 User.belongsToMany(Project, { through: 'UserProjects' });
 Project.belongsToMany(User, { through: 'UserProjects' });
 
-Tool.belongsTo(Project);
-Project.hasMany(Tool);
-
 // Associações de mensagem com usuário (sem projeto)
 User.hasMany(Message);
 Message.belongsTo(User);

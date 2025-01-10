@@ -6,10 +6,10 @@ const Tool = sequelize.define('Tool', {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    status: {
-        type: DataTypes.ENUM('maintenance', 'in_use', 'available'),
-        defaultValue: 'available',
-    },
+    description: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+    }
 });
 
 module.exports = Tool;
