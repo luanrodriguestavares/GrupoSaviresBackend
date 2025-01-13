@@ -5,7 +5,7 @@ const { authenticate, authorizeEngineer } = require('../middleware/authMiddlewar
 const router = express.Router();
 
 router.get('/me', authenticate, getCurrentUser);
-router.put('/update', authenticate, updateUser);
+router.put('/:userId/update', authenticate, updateUser);
 router.get('/search', authenticate, searchUsers);
 router.put('/:userId/toggle-status', authenticate, authorizeEngineer, toggleUserStatus);
 
