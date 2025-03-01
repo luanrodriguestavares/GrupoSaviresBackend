@@ -42,10 +42,15 @@ exports.login = async (req, res) => {
 };
 
 exports.register = async (req, res) => {
-    const { username, phoneNumber, password, jobTitle, userType } = req.body;
+    const { id, username, phoneNumber, password, jobTitle, userType } = req.body;
 
     try {
+        if (!id) {
+            return res.status(400).json({ message: 'ID é obrigatório' });
+        }
+
         const newUser = await User.create({
+            id,
             username,
             phoneNumber,
             password,
@@ -53,9 +58,10 @@ exports.register = async (req, res) => {
             userType,
         });
 
+        console.log("User created successfully:", newUser);
         res.status(201).json({ message: 'Usuário criado com sucesso', userId: newUser.id });
     } catch (error) {
+        console.error("Error in register controller:", error);
         res.status(500).json({ message: 'Erro no servidor', error: error.message });
     }
 };
-

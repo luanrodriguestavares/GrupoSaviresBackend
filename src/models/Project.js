@@ -2,6 +2,11 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const Project = sequelize.define('Project', {
+    id: {
+        type: DataTypes.UUID,
+        primaryKey: true,
+        allowNull: false,
+    },
     name: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -10,34 +15,86 @@ const Project = sequelize.define('Project', {
         type: DataTypes.ENUM('active', 'paused', 'completed'),
         defaultValue: 'active',
     },
-    description: DataTypes.TEXT,
+    description: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+    },
+    cep: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    city: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    uf: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    neighborhood: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
     address: {
-        type: DataTypes.JSON,
+        type: DataTypes.STRING,
         allowNull: false,
     },
-    contractNumber: DataTypes.STRING,
-    executingCompany: {
-        type: DataTypes.JSON,
+    contractNumber: {
+        type: DataTypes.STRING,
         allowNull: false,
     },
-    contractingCompany: {
-        type: DataTypes.JSON,
+    executingCompanyCNPJ: {
+        type: DataTypes.STRING,
         allowNull: false,
     },
-    art: DataTypes.STRING,
-    technicalResponsible: {
-        type: DataTypes.JSON,
+    executingCompanyName: {
+        type: DataTypes.STRING,
         allowNull: false,
     },
-    startDate: DataTypes.DATE,
-    expectedEndDate: DataTypes.DATE,
+    contractingCompanyCNPJ: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    contractingCompanyName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    art: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    technicalResponsibility: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    technicalResponsibleCNPJ: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    startDate: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    endDate: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
     executionPercentage: {
-        type: DataTypes.FLOAT,
-        defaultValue: 0,
+        type: DataTypes.STRING,
+        allowNull: false,
     },
-    resources: DataTypes.JSON,
-    measurementDate: DataTypes.DATE,
+    currentPercentage: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    resource: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    measurementDate: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    }
 });
 
 module.exports = Project;
-

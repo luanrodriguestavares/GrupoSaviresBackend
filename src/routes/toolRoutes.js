@@ -4,10 +4,9 @@ const { authenticate, authorizeEngineer } = require('../middleware/authMiddlewar
 
 const router = express.Router();
 
-router.post('/', authenticate, authorizeEngineer, createTool);
-router.put('/:toolId', authenticate, authorizeEngineer, updateTool);
+router.post('/', authenticate, authorizeEngineer, createTool); 
+router.put('/:toolId', authenticate, authorizeEngineer, updateTool); 
 router.get('/', authenticate, getTools);
-router.delete('/:toolId', authenticate, authorizeEngineer, deleteTool);
+router.delete('/:toolId', authenticate, authorizeEngineer, deleteTool); 
 
 module.exports = router;
-

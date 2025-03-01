@@ -3,6 +3,11 @@ const sequelize = require('../config/database');
 const bcrypt = require('bcryptjs');
 
 const User = sequelize.define('User', {
+    id: {
+        type: DataTypes.UUID,
+        primaryKey: true,    
+        allowNull: false,
+    },
     username: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -11,7 +16,7 @@ const User = sequelize.define('User', {
     phoneNumber: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true,
+        unique: true, 
     },
     password: {
         type: DataTypes.STRING,
@@ -45,4 +50,3 @@ User.prototype.comparePassword = function (candidatePassword) {
 };
 
 module.exports = User;
-

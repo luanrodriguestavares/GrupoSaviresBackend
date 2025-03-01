@@ -21,42 +21,55 @@ const app = express()
 const server = http.createServer(app)
 
 const corsOptions = {
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
+	origin: "*",
+	methods: ["GET", "POST", "PUT", "DELETE"],
+	allowedHeaders: ["Content-Type", "Authorization"],
+	credentials: true,
 }
 app.use(cors(corsOptions))
 app.use(express.json())
 
+let requestCount = 0  // Variável para contar as requisições
+
+// Middleware para contar as requisições
+app.use((req, res, next) => {
+  requestCount++; // Incrementa a contagem de requisições
+  next();
+})
+
 app.get("/api/test", (req, res) => {
-  res.send("Hello World")
+	res.send("Hello World")
 })
 
 app.get("/health", (req, res) => {
-  res.status(200).json({ status: "OK", message: "Server is running" })
+	res.status(200).json({ status: "OK", message: "Server is running" })
+})
+
+// Rota para exibir a quantidade de requisições feitas
+app.get("/api/request-count", (req, res) => {
+  res.status(200).json({ requestCount })
 })
 
 const io = socketIo(server, {
-  cors: corsOptions,
+	cors: corsOptions,
 })
 setupSocketIO(io)
 
 const swaggerOptions = {
-  definition: {
-    openapi: "3.0.0",
-    info: {
-      title: "Construction Management API",
-      version: "1.0.0",
-      description: "API for managing construction projects",
-    },
-    servers: [
-      {
-        url: `http://0.0.0.0:${process.env.PORT || 3000}`,
-      },
-    ],
-  },
-  apis: ["./src/routes/*.js"],
+	definition: {
+		openapi: "3.0.0",
+		info: {
+			title: "Construction Management API",
+			version: "1.0.0",
+			description: "API for managing construction projects",
+		},
+		servers: [
+			{
+				url: `http://0.0.0.0:${process.env.PORT || 3000}`,
+			},
+		],
+	},
+	apis: ["./src/routes/*.js"],
 }
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions)
@@ -74,18 +87,17 @@ app.set("io", io)
 app.use(errorHandler)
 
 sequelize
-  .sync({ alter: true })
-  .then(() => {
-    console.log("Database connected and tables are up to date")
-  })
-  .catch((err) => {
-    console.error("Unable to connect to the database:", err)
-  })
+	.sync({ alter: true })
+	.then(() => {
+		console.log("Database connected and tables are up to date")
+	})
+	.catch((err) => {
+		console.error("Unable to connect to the database:", err)
+	})
 
 const PORT = process.env.PORT || 3000
 server.listen(PORT, "192.168.0.10", () => {
-  console.log(`Server running at http://192.168.0.10:${PORT}`)
+	console.log(`Server running at http://192.168.0.10:${PORT}`)
 })
 
 module.exports = { app, server }
-

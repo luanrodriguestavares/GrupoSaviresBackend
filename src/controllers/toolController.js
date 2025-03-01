@@ -2,7 +2,8 @@ const { Tool } = require('../models');
 
 exports.createTool = async (req, res) => {
     try {
-        const newTool = await Tool.create(req.body);
+        const { id, name, description } = req.body;
+        const newTool = await Tool.create({ id, name, description });
         res.status(201).json({ message: 'Tool created successfully', tool: newTool });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });

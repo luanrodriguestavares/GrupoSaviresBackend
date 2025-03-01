@@ -5,8 +5,8 @@ const Report = require('./Report');
 const Project = require('./Project');
 
 // Associações entre usuários e projetos (sem envolver mensagens)
-User.belongsToMany(Project, { through: 'UserProjects' });
-Project.belongsToMany(User, { through: 'UserProjects' });
+User.belongsToMany(Project, { through: 'UserProjects',foreignKey: 'userId',otherKey: 'projectId' });
+Project.belongsToMany(User, { through: 'UserProjects',foreignKey: 'projectId',otherKey: 'userId' });
 
 // Associações de mensagem com usuário (sem projeto)
 User.hasMany(Message);
