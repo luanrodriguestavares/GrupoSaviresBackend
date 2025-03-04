@@ -1,14 +1,15 @@
-const express = require('express');
-const { createProject, updateProjectStatus, updateProject,associateUser, getProjects,getProjectById } = require('../controllers/projectController');
-const { authenticate, authorizeEngineer } = require('../middleware/authMiddleware');
+const express = require("express")
+const { createProject, updateProjectStatus, updateProject, associateUser, getProjects, getProjectById } = require("../controllers/projectController")
+const { authenticate, isEngineer, isAnyUser } = require("../middleware/authMiddleware")
 
-const router = express.Router();
+const router = express.Router()
 
-router.post('/', authenticate, authorizeEngineer, createProject);
-router.put('/:projectId', authenticate, authorizeEngineer, updateProject);
-router.put('/:projectId/status', authenticate, authorizeEngineer, updateProjectStatus);
-router.put('/:projectId/associate/:userId', authenticate, authorizeEngineer, associateUser);
-router.get('/', authenticate, getProjects);
-router.get('/:projectId', authenticate, getProjectById);
+router.post("/", authenticate, isEngineer, createProject)
+router.put("/:projectId", authenticate, isEngineer, updateProject)
+router.put("/:projectId/status", authenticate, isEngineer, updateProjectStatus)
+router.post("/:projectId/users/:userId", authenticate, isEngineer, associateUser)
+router.get("/", authenticate, isAnyUser, getProjects)
+router.get("/:projectId", authenticate, isAnyUser, getProjectById)
 
-module.exports = router;
+module.exports = router
+

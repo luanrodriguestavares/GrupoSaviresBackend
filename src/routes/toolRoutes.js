@@ -1,12 +1,13 @@
-const express = require('express');
-const { createTool, updateTool, getTools, deleteTool } = require('../controllers/toolController');
-const { authenticate, authorizeEngineer } = require('../middleware/authMiddleware');
+const express = require("express")
+const { createTool, updateTool, getTools, deleteTool } = require("../controllers/toolController")
+const { authenticate, isEngineer, isAnyUser } = require("../middleware/authMiddleware")
 
-const router = express.Router();
+const router = express.Router()
 
-router.post('/', authenticate, authorizeEngineer, createTool); 
-router.put('/:toolId', authenticate, authorizeEngineer, updateTool); 
-router.get('/', authenticate, getTools);
-router.delete('/:toolId', authenticate, authorizeEngineer, deleteTool); 
+router.post("/", authenticate, isEngineer, createTool)
+router.put("/:toolId", authenticate, isEngineer, updateTool)
+router.delete("/:toolId", authenticate, isEngineer, deleteTool)
+router.get("/", authenticate, isAnyUser, getTools)
 
-module.exports = router;
+module.exports = router
+

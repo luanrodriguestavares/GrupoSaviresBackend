@@ -1,39 +1,51 @@
-const jwt = require('jsonwebtoken');
-const { User } = require('../models');
+const jwt = require("jsonwebtoken")
+const { User } = require("../models")
 
+// Middleware para autenticação básica
 exports.authenticate = async (req, res, next) => {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    const token = req.header("Authorization")?.replace("Bearer ", "")
 
     if (!token) {
-        return res.status(401).json({ message: 'Authentication required' });
+        return res.status(401).json({ message: "Autenticação é necessária para essa ação" })
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await User.findByPk(decoded.userId);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+        const user = await User.findByPk(decoded.userId)
 
         if (!user || !user.isActive) {
-            return res.status(401).json({ message: 'Invalid or inactive user' });
+            return res.status(401).json({ message: "Usuário inativo ou inexistente" })
         }
 
-        req.user = { userId: user.id, userType: user.userType };
-        next();
+        req.user = {
+            userId: user.id,
+            userType: user.userType,
+            username: user.username,
+        }
+
+        next()
     } catch (error) {
-        res.status(401).json({ message: 'Invalid token' });
+        res.status(401).json({ message: "Token inválido" })
     }
-};
+}
 
-exports.authorizeEngineer = (req, res, next) => {
-    if (req.user.userType !== 'engineer') {
-        return res.status(403).json({ message: 'Access denied. Engineers only.' });
+exports.isEngineer = (req, res, next) => {
+    if (req.user.userType !== "engineer") {
+        return res.status(403).json({ message: "Acesso negado. Esta ação requer privilégios de engenheiro." })
     }
-    next();
-};
+    next()
+}
 
-exports.authorizeCommonOrEngineer = (req, res, next) => {
-    if (req.user.userType !== 'engineer' && req.user.userType !== 'common') {
-        return res.status(403).json({ message: 'Access denied. Engineers or common users only.' });
+exports.isCommonOrEngineer = (req, res, next) => {
+    if (req.user.userType === "viewer") {
+        return res
+            .status(403)
+            .json({ message: "Acesso negado. Usuários do tipo visualizador não têm permissão para esta ação." })
     }
-    next();
-};
+    next()
+}
+
+exports.isAnyUser = (req, res, next) => {
+    next()
+}
 

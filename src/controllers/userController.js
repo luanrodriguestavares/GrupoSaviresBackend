@@ -1,98 +1,95 @@
-const { User } = require('../models');
-const { Op } = require('sequelize');
+const { User } = require("../models")
+const { Op } = require("sequelize")
 
 exports.updateUser = async (req, res) => {
-    const { userId } = req.params;
-    const { username, phoneNumber, jobTitle, profilePicture, userType } = req.body;
+    const { userId } = req.params
+    const { username, phoneNumber, jobTitle, profilePicture, userType, cpfCnpj } = req.body
 
     try {
-        const user = await User.findByPk(userId);
+        const user = await User.findByPk(userId)
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({ message: "Usuário não encontrado" })
         }
 
-        if (req.user.userType !== 'engineer' && req.user.id !== userId) {
-            return res.status(403).json({ message: 'Unauthorized to edit this user' });
+        if (req.user.userType !== "engineer" && req.user.userId !== userId) {
+            return res.status(403).json({ message: "Sem permissão para atualizar esse usuário" })
         }
 
-        if (req.user.userType === 'engineer') {
-            user.userType = userType || user.userType;
+        if (req.user.userType === "engineer") {
+            user.userType = userType || user.userType
         }
 
-        user.username = username || user.username;
-        user.phoneNumber = phoneNumber || user.phoneNumber;
-        user.jobTitle = jobTitle || user.jobTitle;
+        user.username = username || user.username
+        user.phoneNumber = phoneNumber || user.phoneNumber
+        user.jobTitle = jobTitle || user.jobTitle
+        user.cpfCnpj = cpfCnpj || user.cpfCnpj
         if (profilePicture) {
-            user.profilePicture = profilePicture;
+            user.profilePicture = profilePicture
         }
 
-        await user.save();
+        await user.save()
 
-        res.json({ message: 'User updated successfully', user });
+        res.json({ message: "Usuário atualizado com sucesso", user })
     } catch (error) {
-        console.error('Error updating user:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error("Erro ao atualizar usuário:", error)
+        res.status(500).json({ message: "Erro no servidor", error: error.message })
     }
-};
+}
 
 exports.searchUsers = async (req, res) => {
-    const { name, jobTitle } = req.query;
+    const { name, jobTitle, cpfCnpj } = req.query
 
     try {
-        let whereClause = {};
-        if (name) whereClause.username = { [Op.like]: `%${name}%` };
-        if (jobTitle) whereClause.jobTitle = { [Op.like]: `%${jobTitle}%` };
+        const whereClause = {}
+        if (name) whereClause.username = { [Op.like]: `%${name}%` }
+        if (jobTitle) whereClause.jobTitle = { [Op.like]: `%${jobTitle}%` }
+        if (cpfCnpj) whereClause.cpfCnpj = { [Op.like]: `%${cpfCnpj}%` }
 
         const users = await User.findAll({
             where: whereClause,
-            attributes: { exclude: ['password'] }
-        });
-        res.json(users);
+            attributes: { exclude: ["password"] },
+        })
+        res.json(users)
     } catch (error) {
-        console.error('Error searching users:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error("Erro ao pesquisar usuários:", error)
+        res.status(500).json({ message: "Erro no servidor", error: error.message })
     }
-};
+}
 
 exports.toggleUserStatus = async (req, res) => {
-    const { userId } = req.params;
+    const { userId } = req.params
 
     try {
-        const user = await User.findByPk(userId);
+        const user = await User.findByPk(userId)
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({ message: "Usuário não encontrado" })
         }
 
-        if (req.user.userType !== 'engineer') {
-            return res.status(403).json({ message: 'Unauthorized to toggle user status' });
-        }
+        user.isActive = !user.isActive
+        await user.save()
 
-        user.isActive = !user.isActive;
-        await user.save();
-
-        res.json({ message: `User ${user.isActive ? 'activated' : 'deactivated'} successfully`, user });
+        res.json({ message: `Usuário ${user.isActive ? "ativado" : "desativado"} com sucesso`, user })
     } catch (error) {
-        console.error('Error toggling user status:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error("Erro ao ativar/desativar usuário:", error)
+        res.status(500).json({ message: "Erro no servidor", error: error.message })
     }
-};
+}
 
 exports.getCurrentUser = async (req, res) => {
-    const { userId } = req.user;
+    const { userId } = req.user
 
     try {
         const user = await User.findByPk(userId, {
-            attributes: { exclude: ['password'] }
-        });
+            attributes: { exclude: ["password"] },
+        })
 
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({ message: "Usuário não encontrado" })
         }
 
-        res.json(user);
+        res.json(user)
     } catch (error) {
-        console.error('Error fetching current user:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
+        console.error("Erro ao obter o usuário atual:", error)
+        res.status(500).json({ message: "Erro no servidor", error: error.message })
     }
-};
-
+}

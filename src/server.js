@@ -13,48 +13,49 @@ const setupSocketIO = require("./config/socketio")
 const authRoutes = require("./routes/authRoutes")
 const userRoutes = require("./routes/userRoutes")
 const projectRoutes = require("./routes/projectRoutes")
-const reportRoutes = require("./routes/reportRoutes")
 const toolRoutes = require("./routes/toolRoutes")
 const chatRoutes = require("./routes/chatRoutes")
+const projectDetailsReportRoutes = require("./routes/reports/projectDetailsReportRoutes")
 
 const app = express()
 const server = http.createServer(app)
 
+
+
+// CORS options
 const corsOptions = {
 	origin: "*",
 	methods: ["GET", "POST", "PUT", "DELETE"],
 	allowedHeaders: ["Content-Type", "Authorization"],
 	credentials: true,
 }
+
+
+
+// Middlewares
 app.use(cors(corsOptions))
 app.use(express.json())
 
-let requestCount = 0  // Variável para contar as requisições
 
-// Middleware para contar as requisições
-app.use((req, res, next) => {
-  requestCount++; // Incrementa a contagem de requisições
-  next();
-})
 
+// Routes
 app.get("/api/test", (req, res) => {
-	res.send("Hello World")
+	res.send("A API está funcionando")
 })
 
 app.get("/health", (req, res) => {
-	res.status(200).json({ status: "OK", message: "Server is running" })
+	res.status(200).json({ status: "OK", message: "Servidor está online e executando corretamente" })
 })
 
-// Rota para exibir a quantidade de requisições feitas
-app.get("/api/request-count", (req, res) => {
-  res.status(200).json({ requestCount })
-})
 
-const io = socketIo(server, {
-	cors: corsOptions,
-})
+
+// Socket.IO setup
+const io = socketIo(server, { cors: corsOptions })
 setupSocketIO(io)
 
+
+
+// Swagger setup
 const swaggerOptions = {
 	definition: {
 		openapi: "3.0.0",
@@ -65,7 +66,7 @@ const swaggerOptions = {
 		},
 		servers: [
 			{
-				url: `http://0.0.0.0:${process.env.PORT || 3000}`,
+				url: `https://0.0.0.0:${process.env.PORT || 3000}`,
 			},
 		],
 	},
@@ -75,29 +76,44 @@ const swaggerOptions = {
 const swaggerSpec = swaggerJsdoc(swaggerOptions)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
+
+
+// API routes
 app.use("/api/auth", authRoutes)
 app.use("/api/users", userRoutes)
 app.use("/api/projects", projectRoutes)
-app.use("/api/reports", reportRoutes)
 app.use("/api/tools", toolRoutes)
 app.use("/api/chat", chatRoutes)
+app.use("/api/project-details-reports", projectDetailsReportRoutes)
 
+
+
+// Attach Socket.IO instance to app
 app.set("io", io)
 
+
+
+// Error handler middleware
 app.use(errorHandler)
 
+
+
+// Database sync
 sequelize
 	.sync({ alter: true })
 	.then(() => {
-		console.log("Database connected and tables are up to date")
+		console.log("Banco de dados sincronizado com sucesso")
 	})
 	.catch((err) => {
-		console.error("Unable to connect to the database:", err)
+		console.error("Erro ao sincronizar o banco de dados:", err)
 	})
 
+
+
+// Start server
 const PORT = process.env.PORT || 3000
 server.listen(PORT, "192.168.0.10", () => {
-	console.log(`Server running at http://192.168.0.10:${PORT}`)
+	console.log(`O servidor está rodando em http://192.168.0.10:${PORT}`)
 })
 
 module.exports = { app, server }

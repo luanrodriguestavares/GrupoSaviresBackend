@@ -1,8 +1,7 @@
-const { Project, User } = require('../models');
+const { Project, User } = require("../models")
 
 exports.createProject = async (req, res) => {
     try {
-        console.log("Received CREATE request:", req.body)
         const {
             id,
             name,
@@ -30,7 +29,7 @@ exports.createProject = async (req, res) => {
         } = req.body
 
         if (!id) {
-            return res.status(400).json({ message: "O campo id é obrigatório." });
+            return res.status(400).json({ message: "O campo id é obrigatório." })
         }
 
         const requiredFields = [
@@ -60,7 +59,7 @@ exports.createProject = async (req, res) => {
 
         for (const field of requiredFields) {
             if (!req.body[field]) {
-                console.error(`Missing required field: ${field}`)
+                console.error(`O campo a seguir é obrigatório: ${field}`)
                 return res.status(400).json({ message: `O campo ${field} é obrigatório.` })
             }
         }
@@ -89,98 +88,119 @@ exports.createProject = async (req, res) => {
             currentPercentage,
             resource,
             measurementDate,
-        });
-        
-        console.log("Project created successfully:", newProject)
+        })
+
+        console.log("Projeto criado com sucesso:", newProject)
         res.status(201).json({ message: "Projeto criado com sucesso", project: newProject })
     } catch (error) {
-        console.error("Error creating project:", error)
+        console.error("Erro ao criar projeto:", error)
         res.status(500).json({ message: "Erro no servidor", error: error.message })
     }
-};
+}
 
 exports.updateProjectStatus = async (req, res) => {
-    const { projectId } = req.params;
-    const { status } = req.body;
+    const { projectId } = req.params
+    const { status } = req.body
 
     try {
-        const project = await Project.findByPk(projectId);
+        const project = await Project.findByPk(projectId)
         if (!project) {
-            return res.status(404).json({ message: 'Projeto não encontrado' });
+            return res.status(404).json({ message: "Projeto não encontrado" })
         }
 
-        project.status = status;
-        await project.save();
+        project.status = status
+        await project.save()
 
-        res.json({ message: 'Status do projeto atualizado com sucesso', project });
+        res.json({ message: "Status do projeto atualizado com sucesso", project })
     } catch (error) {
-        res.status(500).json({ message: 'Erro no servidor', error: error.message });
+        res.status(500).json({ message: "Erro no servidor", error: error.message })
     }
-};
+}
 
 exports.updateProject = async (req, res) => {
-    const { projectId } = req.params;
+    const { projectId } = req.params
 
     try {
-        const project = await Project.findByPk(projectId);
+        const project = await Project.findByPk(projectId)
         if (!project) {
-            return res.status(404).json({ message: 'Projeto não encontrado' });
+            return res.status(404).json({ message: "Projeto não encontrado" })
         }
 
-        await project.update(req.body);
-        res.json({ message: 'Projeto atualizado com sucesso', project });
+        await project.update(req.body)
+        res.json({ message: "Projeto atualizado com sucesso", project })
     } catch (error) {
-        res.status(500).json({ message: 'Erro no servidor', error: error.message });
+        res.status(500).json({ message: "Erro no servidor", error: error.message })
     }
-};
+}
 
 exports.associateUser = async (req, res) => {
-    const { projectId, userId } = req.params;
+    const { projectId, userId } = req.params
 
     try {
-        const project = await Project.findByPk(projectId);
-        const user = await User.findByPk(userId);
+        const project = await Project.findByPk(projectId)
+        const user = await User.findByPk(userId)
 
         if (!project || !user) {
-            return res.status(404).json({ message: 'Projeto ou Usuário não encontrado' });
+            return res.status(404).json({ message: "Projeto ou Usuário não encontrado" })
         }
 
-        await project.addUser(user);
-        res.json({ message: 'Usuário associado ao projeto com sucesso' });
+        await project.addUser(user)
+        res.json({ message: "Usuário associado ao projeto com sucesso" })
     } catch (error) {
-        res.status(500).json({ message: 'Erro no servidor', error: error.message });
+        res.status(500).json({ message: "Erro no servidor", error: error.message })
     }
-};
+}
 
 exports.getProjects = async (req, res) => {
-    const { userType, userId } = req.user;
+    const { userType, userId } = req.user
 
     try {
-        let projects;
-        if (userType === 'engineer') {
-            projects = await Project.findAll();
-        } else {
-            const user = await User.findByPk(userId, { include: Project });
-            projects = user.Projects;
+        let projects
+
+        if (userType === "engineer") {
+            projects = await Project.findAll()
+        }
+        else {
+            const user = await User.findByPk(userId, { include: Project })
+            projects = user.Projects || []
         }
 
-        res.json(projects);
+        res.json(projects)
     } catch (error) {
-        res.status(500).json({ message: 'Erro no servidor', error: error.message });
+        res.status(500).json({ message: "Erro no servidor", error: error.message })
     }
-};
+}
 
 exports.getProjectById = async (req, res) => {
-    const { projectId } = req.params;
+    const { projectId } = req.params
+    const { userType, userId } = req.user
 
     try {
-        const project = await Project.findByPk(projectId);
+        const project = await Project.findByPk(projectId)
+
         if (!project) {
-            return res.status(404).json({ message: 'Projeto não encontrado' });
+            return res.status(404).json({ message: "Projeto não encontrado" })
         }
 
-        res.json(project);
+        if (userType !== "engineer") {
+            const user = await User.findByPk(userId, {
+                include: [
+                    {
+                        model: Project,
+                        where: { id: projectId },
+                        required: false,
+                    },
+                ],
+            })
+
+            if (!user.Projects || user.Projects.length === 0) {
+                return res.status(403).json({ message: "Você não tem permissão para visualizar este projeto" })
+            }
+        }
+
+        res.json(project)
     } catch (error) {
-        res.status(500).json({ message: 'Erro no servidor', error: error.message });
+        res.status(500).json({ message: "Erro no servidor", error: error.message })
     }
-};
+}
+

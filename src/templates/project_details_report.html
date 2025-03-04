@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diário de Obra</title>
+    <title>Detalhes da Obra</title>
     <style>
         * {
             margin: 0;
@@ -184,12 +184,12 @@
 <body>
     <div class="container">
         <header>
-            <img class="header-logo" src="{{daily.logo}}" alt="Logo da Empresa">
+            <img class="header-logo" src="{{project.logo}}" alt="Logo da Empresa">
             <div class="header-info">
-                <h1>Diário de Obra</h1>
-                <p><strong>Data:</strong> {{daily.date}}</p>
-                <p><strong>Obra:</strong> {{daily.projectName}}</p>
-                <p><strong>Responsável:</strong> {{daily.responsible}}</p>
+                <h1>Detalhes da obra</h1>
+                <p><strong>Data:</strong> {{project.registrationDate}}</p>
+                <p><strong>Obra:</strong> {{project.name}}</p>
+                <p><strong>Responsável:</strong> {{project.responsible}}</p>
             </div>
         </header>
 
@@ -199,121 +199,110 @@
                 <thead>
                     <tr>
                         <th>Nome do Projeto</th>
+                        <th>Status</th>
                         <th>Descrição</th>
-                        <th>Início da Obra</th>
-                        <th>Tempo Corrido</th>
-                        <th>Período do Relatório</th>
-                        <th>Responsável Técnico</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>{{daily.project.name}}</td>
-                        <td>{{daily.project.description}}</td>
-                        <td>{{daily.project.startDate}}</td>
-                        <td>{{daily.project.elapsedTime}}</td>
-                        <td>{{daily.reportPeriod.start}} - {{daily.reportPeriod.end}}</td>
-                        <td>{{daily.technicalResponsible}}</td>
+                        <td>{{project.name}}</td>
+                        <td>{{project.status}}</td>
+                        <td>{{project.description}}</td>
                     </tr>
                 </tbody>
             </table>
         </section>
 
         <section>
-            <h2>Observações</h2>
-            <table>
-                <tbody>
-                    <tr>
-                        <td>{{daily.observations}}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-
-        <section>
-            <h2>Turno/Tempo</h2>
+            <h2>Localização</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>Turno</th>
-                        <th>Tempo</th>
+                        <th>CEP</th>
+                        <th>Estado</th>
+                        <th>Cidade</th>
+                        <th>Bairro</th>
+                        <th>Logradouro</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Manhã</td>
-                        <td>{{daily.shifts.morning}}</td>
-                    </tr>
-                    <tr>
-                        <td>Tarde</td>
-                        <td>{{daily.shifts.afternoon}}</td>
-                    </tr>
-                    <tr>
-                        <td>Noite</td>
-                        <td>{{daily.shifts.night}}</td>
+                        <td>{{project.location.cep}}</td>
+                        <td>{{project.location.state}}</td>
+                        <td>{{project.location.city}}</td>
+                        <td>{{project.location.neighborhood}}</td>
+                        <td>{{project.location.address}}</td>
                     </tr>
                 </tbody>
             </table>
         </section>
 
         <section>
-            <h2>Tarefas Realizadas</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Dia</th>
-                        <th>Atividades</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#daily.activities}}
-                    <tr>
-                        <td>{{date}}</td>
-                        <td>{{description}}</td>
-                    </tr>
-                    {{/daily.activities}}
-                </tbody>
-            </table>
-        </section>
-
-        <section>
-            <h2>Equipe Envolvida</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Cargo</th>
-                        <th>Quantidade</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#daily.team}}
-                    <tr>
-                        <td>{{role}}</td>
-                        <td>{{quantity}}</td>
-                    </tr>
-                    {{/daily.team}}
-                </tbody>
-            </table>
-        </section>
-
-        <section>
-            <h2>Equipamentos Utilizados</h2>
+            <h2>Dados do Contrato</h2>
             <table class="many-columns">
                 <thead>
                     <tr>
-                        <th>Código</th>
-                        <th>Descrição</th>
-                        <th>Quantidade</th>
+                        <th>Número</th>
+                        <th>CNPJ Executante</th>
+                        <th>Razão Social Executante</th>
+                        <th>CNPJ Contratante</th>
+                        <th>Razão Social Contratante</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {{#daily.equipment}}
                     <tr>
-                        <td>{{code}}</td>
-                        <td>{{description}}</td>
-                        <td>{{quantity}}</td>
+                        <td>{{project.contract.number}}</td>
+                        <td>{{project.contract.executingCompanyCNPJ}}</td>
+                        <td>{{project.contract.executingCompanyName}}</td>
+                        <td>{{project.contract.contractingCompanyCNPJ}}</td>
+                        <td>{{project.contract.contractingCompanyName}}</td>
                     </tr>
-                    {{/daily.equipment}}
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>Informações Técnicas</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ART</th>
+                        <th>Nome do Responsável Técnico</th>
+                        <th>CPF/CNPJ do Responsável Técnico</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{project.technicalInfo.art}}</td>
+                        <td>{{project.technicalInfo.technicalResponsibility}}</td>
+                        <td>{{project.technicalInfo.technicalResponsibleCNPJ}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>Informações de Execução</h2>
+            <table class="many-columns">
+                <thead>
+                    <tr>
+                        <th>Início</th>
+                        <th>Término Previsto</th>
+                        <th>Execução %</th>
+                        <th>Atual %</th>
+                        <th>Recurso</th>
+                        <th>Data da Medição</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{project.execution.startDate}}</td>
+                        <td>{{project.execution.endDate}}</td>
+                        <td>{{project.execution.executionPercentage}}</td>
+                        <td>{{project.execution.currentPercentage}}</td>
+                        <td>{{project.execution.resource}}</td>
+                        <td>{{project.execution.measurementDate}}</td>
+                    </tr>
                 </tbody>
             </table>
         </section>
@@ -323,7 +312,7 @@
         </div>
 
         <footer>
-            <img class="footer-logo" src="{{daily.logo}}" alt="Logo da Empresa">
+            <img class="footer-logo" src="{{project.logo}}" alt="Logo da Empresa">
             <div class="footer-info">
                 <p>88 99377-9889 | 88 99363-0999</p>
                 <p>saviresconstrucoes@gmail.com | salles_cavalcante@hotmail.com</p>
