@@ -16,6 +16,8 @@ const projectRoutes = require("./routes/projectRoutes")
 const toolRoutes = require("./routes/toolRoutes")
 const chatRoutes = require("./routes/chatRoutes")
 const projectDetailsReportRoutes = require("./routes/reports/projectDetailsReportRoutes")
+const cepRoutes = require("./routes/cepRoutes")
+const cnpjRoutes = require("./routes/cnpjRoutes")
 
 const app = express()
 const server = http.createServer(app)
@@ -40,7 +42,7 @@ app.use(express.json())
 
 // Routes
 app.get("/api/test", (req, res) => {
-	res.send("A API está funcionando")
+	res.send("A API está funcionando")
 })
 
 app.get("/health", (req, res) => {
@@ -85,6 +87,8 @@ app.use("/api/projects", projectRoutes)
 app.use("/api/tools", toolRoutes)
 app.use("/api/chat", chatRoutes)
 app.use("/api/project-details-reports", projectDetailsReportRoutes)
+app.use("/api/cep", cepRoutes)
+app.use("/api/cnpj", cnpjRoutes)
 
 
 

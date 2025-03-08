@@ -158,10 +158,25 @@ exports.getProjects = async (req, res) => {
         let projects
 
         if (userType === "engineer") {
-            projects = await Project.findAll()
+            projects = await Project.findAll({
+                include: {
+                    model: User,
+                    attributes: ['id', 'username', 'jobTitle', 'userType'],
+                    through: { attributes: [] }
+                }
+            })
         }
         else {
-            const user = await User.findByPk(userId, { include: Project })
+            const user = await User.findByPk(userId, { 
+                include: {
+                    model: Project,
+                    include: {
+                        model: User,
+                        attributes: ['id', 'username', 'jobTitle', 'userType'],
+                        through: { attributes: [] }
+                    }
+                } 
+            })
             projects = user.Projects || []
         }
 
@@ -176,7 +191,13 @@ exports.getProjectById = async (req, res) => {
     const { userType, userId } = req.user
 
     try {
-        const project = await Project.findByPk(projectId)
+        const project = await Project.findByPk(projectId, {
+            include: {
+                model: User,
+                attributes: ['id', 'username', 'jobTitle', 'userType'],
+                through: { attributes: [] }
+            }
+        })
 
         if (!project) {
             return res.status(404).json({ message: "Projeto não encontrado" })
@@ -203,4 +224,3 @@ exports.getProjectById = async (req, res) => {
         res.status(500).json({ message: "Erro no servidor", error: error.message })
     }
 }
-

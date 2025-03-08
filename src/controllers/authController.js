@@ -63,3 +63,26 @@ exports.register = async (req, res) => {
         res.status(500).json({ message: "Erro no servidor", error: error.message })
     }
 }
+
+exports.refreshToken = async (req, res) => {
+    const { token } = req.body;
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET, { ignoreExpiration: true });
+        const user = await User.findByPk(decoded.userId);
+
+        if (!user || !user.isActive) {
+            return res.status(401).json({ message: "Usuário inválido" });
+        }
+
+        const newToken = jwt.sign(
+            { userId: user.id, userType: user.userType }, 
+            process.env.JWT_SECRET, 
+            { expiresIn: "1d" }
+        );
+
+        res.json({ token: newToken });
+    } catch (error) {
+        res.status(401).json({ message: "Token inválido" });
+    }
+}
