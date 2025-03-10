@@ -20,7 +20,7 @@ exports.login = async (req, res) => {
             return res.status(403).json({ message: "Desculpe, sua conta foi desativada" })
         }
 
-        const token = jwt.sign({ userId: user.id, userType: user.userType }, process.env.JWT_SECRET, { expiresIn: "1d" })
+        const token = jwt.sign({ userId: user.id, userType: user.userType }, process.env.JWT_SECRET, { expiresIn: "3d" })
 
         res.json({
             token,
