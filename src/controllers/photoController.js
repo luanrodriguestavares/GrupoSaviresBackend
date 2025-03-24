@@ -96,12 +96,11 @@ exports.uploadPhoto = async (req, res) => {
             userId: req.user.userId
         });
 
-        // Return the complete photo object with all fields
         res.status(201).json({ 
             message: 'Foto enviada com sucesso', 
             photo: {
                 ...photo.toJSON(),
-                s3Url: spacesUrl // Ensure the URL is included
+                s3Url: spacesUrl 
             }
         });
     } catch (error) {
@@ -121,7 +120,9 @@ exports.uploadSinglePhoto = async (req, res) => {
 
         await checkProjectAccess(projectId, req.user);
         
-        const spacesUrl = `https://${process.env.DO_SPACES_BUCKET}.${process.env.DO_SPACES_REGION}.digitaloceanspaces.com/${s3Key}`;
+        const spacesUrl = req.file.transforms 
+            ? req.file.transforms[0].location 
+            : `https://${process.env.DO_SPACES_BUCKET}.${process.env.DO_SPACES_REGION}.digitaloceanspaces.com/${req.file.key}`;
 
         const photo = await Photo.create({
             filename: req.file.originalname,
@@ -143,12 +144,11 @@ exports.uploadSinglePhoto = async (req, res) => {
             userId: req.user.userId
         });
 
-        // Return the complete photo object with all fields
         res.status(201).json({ 
             message: 'Foto enviada com sucesso', 
             photo: {
                 ...photo.toJSON(),
-                s3Url: spacesUrl // Ensure the URL is included
+                s3Url: spacesUrl 
             }
         });
     } catch (error) {

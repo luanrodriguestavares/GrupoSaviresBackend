@@ -1,4 +1,5 @@
 const Project = require("../../models/Project");
+const Report = require("../../models/Report");
 const ReportService = require("../../services/reportService");
 const puppeteer = require("puppeteer");
 const path = require("path");
