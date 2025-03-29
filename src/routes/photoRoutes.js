@@ -84,7 +84,7 @@ router.post('/projects/:projectId/photos/batch',
 );
 
 // Rota para otimizar uma foto já existente
-router.post('/photos/:photoId/optimize', 
+router.post('/:photoId/optimize', 
     authenticate, 
     isEngineer, 
     optimizeExistingPhoto
@@ -98,21 +98,21 @@ router.get('/projects/:projectId/photos',
 );
 
 // Rota para obter detalhes de uma foto específica
-router.get('/photos/:photoId', 
+router.get('/:photoId', 
     authenticate, 
     isAnyUser, 
     getPhotoById
 );
 
 // Rota para excluir uma foto
-router.delete('/photos/:photoId', 
+router.delete('/:photoId', 
     authenticate, 
     isEngineer, 
     deletePhoto
 );
 
 // Rota para atualizar metadados de uma foto
-router.put('/photos/:photoId', 
+router.put('/:photoId', 
     authenticate, 
     isEngineer, 
     updatePhotoMetadata

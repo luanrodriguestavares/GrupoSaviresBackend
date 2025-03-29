@@ -151,6 +151,24 @@ exports.associateUser = async (req, res) => {
     }
 }
 
+exports.removeUserFromProject = async (req, res) => {
+    const { projectId, userId } = req.params
+
+    try {
+        const project = await Project.findByPk(projectId)
+        const user = await User.findByPk(userId)
+
+        if (!project || !user) {
+            return res.status(404).json({ message: "Projeto ou Usuário não encontrado" })
+        }
+
+        await project.removeUser(user)
+        res.json({ message: "Usuário removido do projeto com sucesso" })
+    } catch (error) {
+        res.status(500).json({ message: "Erro no servidor", error: error.message })
+    }
+}
+
 exports.getProjects = async (req, res) => {
     const { userType, userId } = req.user
 

@@ -93,6 +93,17 @@
             flex-shrink: 0;
         }
 
+        .company-name-text {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #333;
+            margin-right: 5mm;
+            flex-shrink: 0;
+            width: 80mm;
+            display: flex;
+            align-items: center;
+        }
+
         .header-info {
             flex-grow: 1;
             line-height: 1.2;
@@ -184,7 +195,7 @@
 <body>
     <div class="container">
         <header>
-            <img class="header-logo" src="{{project.logo}}" alt="Logo da Empresa">
+            {{displayLogoOrText project.isSavires project.logo project.executingCompanyName}}
             <div class="header-info">
                 <h1>Detalhes da obra</h1>
                 <p><strong>Data:</strong> {{project.registrationDate}}</p>
@@ -206,7 +217,7 @@
                 <tbody>
                     <tr>
                         <td>{{project.name}}</td>
-                        <td>{{project.status}}</td>
+                        <td>{{translateStatus project.status}}</td>
                         <td>{{project.description}}</td>
                     </tr>
                 </tbody>
@@ -227,7 +238,7 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>{{project.location.cep}}</td>
+                        <td>{{formatCEP project.location.cep}}</td>
                         <td>{{project.location.state}}</td>
                         <td>{{project.location.city}}</td>
                         <td>{{project.location.neighborhood}}</td>
@@ -252,9 +263,9 @@
                 <tbody>
                     <tr>
                         <td>{{project.contract.number}}</td>
-                        <td>{{project.contract.executingCompanyCNPJ}}</td>
+                        <td>{{formatDocument project.contract.executingCompanyCNPJ}}</td>
                         <td>{{project.contract.executingCompanyName}}</td>
-                        <td>{{project.contract.contractingCompanyCNPJ}}</td>
+                        <td>{{formatDocument project.contract.contractingCompanyCNPJ}}</td>
                         <td>{{project.contract.contractingCompanyName}}</td>
                     </tr>
                 </tbody>
@@ -275,7 +286,7 @@
                     <tr>
                         <td>{{project.technicalInfo.art}}</td>
                         <td>{{project.technicalInfo.technicalResponsibility}}</td>
-                        <td>{{project.technicalInfo.technicalResponsibleCNPJ}}</td>
+                        <td>{{formatDocument project.technicalInfo.technicalResponsibleCNPJ}}</td>
                     </tr>
                 </tbody>
             </table>
@@ -296,12 +307,12 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>{{project.execution.startDate}}</td>
-                        <td>{{project.execution.endDate}}</td>
+                        <td>{{formatDate project.execution.startDate}}</td>
+                        <td>{{formatDate project.execution.endDate}}</td>
                         <td>{{project.execution.executionPercentage}}</td>
                         <td>{{project.execution.currentPercentage}}</td>
-                        <td>{{project.execution.resource}}</td>
-                        <td>{{project.execution.measurementDate}}</td>
+                        <td>{{translateResource project.execution.resource}}</td>
+                        <td>{{formatDate project.execution.measurementDate}}</td>
                     </tr>
                 </tbody>
             </table>
@@ -311,15 +322,17 @@
             <p><strong>Assinatura:</strong> _____________________________</p>
         </div>
 
+        {{#showFooter project.isSavires}}
         <footer>
             <img class="footer-logo" src="{{project.logo}}" alt="Logo da Empresa">
             <div class="footer-info">
                 <p>88 99377-9889 | 88 99363-0999</p>
-                <p>saviresconstrucoes@gmail.com | salles_cavalcante@hotmail.com</p>
+                <p>contato@savires.com.br | comercial@savires.com.br</p>
                 <p>Rua Sub Estação, Nº 25, Bairro Regis Diniz, CEP 62322-468, Tianguá-CE</p>
                 <p>CNPJ: 22.346.772/0001-12</p>
             </div>
         </footer>
+        {{/showFooter}}
     </div>
 </body>
 </html>
