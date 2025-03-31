@@ -93,3 +93,40 @@ exports.getCurrentUser = async (req, res) => {
         res.status(500).json({ message: "Erro no servidor", error: error.message })
     }
 }
+
+exports.updateProfilePicture = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: "Nenhuma imagem foi enviada" });
+        }
+
+        const { userId } = req.params;
+        console.log('UserId da rota:', userId);
+        console.log('Arquivo recebido:', req.file);
+
+        const user = await User.findByPk(userId);
+        
+        if (!user) {
+            return res.status(404).json({ message: "Usuário não encontrado" });
+        }
+
+        // Verifica se o usuário tem permissão para atualizar a foto
+        if (req.user.userType !== "engineer" && req.user.userId !== userId) {
+            return res.status(403).json({ message: "Sem permissão para atualizar a foto deste usuário" });
+        }
+
+        user.profilePicture = req.file.location;
+        await user.save();
+
+        return res.status(200).json({ 
+            message: "Foto de perfil atualizada com sucesso",
+            profilePicture: user.profilePicture
+        });
+    } catch (error) {
+        console.error("Erro ao atualizar foto de perfil:", error);
+        return res.status(500).json({ 
+            message: "Erro ao atualizar foto de perfil", 
+            error: error.message 
+        });
+    }
+};
