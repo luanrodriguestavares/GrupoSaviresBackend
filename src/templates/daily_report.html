@@ -12,8 +12,8 @@
         }
 
         @page {
-            size: A4 portrait; 
-            margin: 15mm 10mm; 
+            size: A4 portrait;
+            margin: 15mm 10mm 20mm 10mm;
         }
 
         body {
@@ -28,6 +28,10 @@
             width: 100%;
             max-width: 190mm;
             margin: 0 auto;
+            padding-bottom: 5mm;
+            min-height: calc(100vh - 30mm);
+            display: flex;
+            flex-direction: column;
         }
 
         h1 {
@@ -47,7 +51,7 @@
 
         p {
             font-size: 10pt;
-            margin-bottom: 1mm; 
+            margin-bottom: 1mm;
         }
 
         table {
@@ -93,13 +97,24 @@
             flex-shrink: 0;
         }
 
+        .company-name-text {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #333;
+            margin-right: 5mm;
+            flex-shrink: 0;
+            width: 80mm;
+            display: flex;
+            align-items: center;
+        }
+
         .header-info {
             flex-grow: 1;
             line-height: 1.2;
         }
 
         .header-info p {
-            margin-bottom: 0.5mm; 
+            margin-bottom: 0.5mm;
         }
 
         section {
@@ -107,25 +122,67 @@
             page-break-inside: avoid;
         }
 
+        .weather-section table td:first-child {
+            font-weight: bold;
+        }
+
+        .weather-section table td svg {
+            vertical-align: middle;
+            margin-right: 2mm;
+        }
+        
+        .weather-section table th svg {
+            vertical-align: middle;
+            margin-right: 2mm;
+        }
+
+        .week-section {
+            margin-bottom: 8mm;
+            page-break-inside: auto;
+        }
+
+        .week-tasks {
+            page-break-inside: avoid;
+        }
+
+        .day-entry td:first-child {
+            font-weight: bold;
+        }
+
+        .workdays-section {
+            margin-bottom: 5mm;
+        }
+
         .signature {
-            margin-top: 8mm;
+            margin-top: 15mm;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
             height: 15mm; 
             text-align: center;
+            margin-bottom: 10mm;
+        }
+        
+        .signature-item {
+            flex: 1;
+            border-top: 1pt solid #333;
+            margin: 0 10mm;
+            padding-top: 2mm;
+        }
+
+        .footer-container {
+            margin-top: auto; 
+            padding-top: 10mm;
         }
 
         footer {
-            position: running(footer);
             font-size: 8pt;
             text-align: left;
             border-top: 0.75pt solid #ddd;
             padding-top: 3mm;
-            margin-top: 8mm;
-            padding-bottom: 8mm;
             display: flex;
             align-items: center;
+            width: 100%;
         }
 
         footer .footer-logo {
@@ -167,9 +224,32 @@
                 page-break-after: avoid;
             }
             
+            .week-section {
+                page-break-inside: auto;
+            }
+            
+            .week-tasks {
+                page-break-inside: avoid;
+            }
+
+            .footer-container {
+                position: relative;
+                bottom: 0;
+                left: 0;
+                right: 0;
+            }
+            
             @page {
                 @bottom-center {
                     content: element(footer);
+                    margin-bottom: 0;
+                }
+            }
+            
+            @page:first {
+                @bottom-center {
+                    content: none;
+                    margin-bottom: 0;
                 }
             }
             
@@ -184,12 +264,12 @@
 <body>
     <div class="container">
         <header>
-            <img class="header-logo" src="{{daily.logo}}" alt="Logo da Empresa">
+            {{displayLogoOrText diary.isSavires diary.logo diary.executingCompanyName}}
             <div class="header-info">
                 <h1>Diário de Obra</h1>
-                <p><strong>Data:</strong> {{daily.date}}</p>
-                <p><strong>Obra:</strong> {{daily.projectName}}</p>
-                <p><strong>Responsável:</strong> {{daily.responsible}}</p>
+                <p><strong>Data:</strong> {{formatDate diary.reportDate}}</p>
+                <p><strong>Obra:</strong> {{diary.projectName}}</p>
+                <p><strong>Responsável:</strong> {{diary.responsible}}</p>
             </div>
         </header>
 
@@ -200,137 +280,220 @@
                     <tr>
                         <th>Nome do Projeto</th>
                         <th>Descrição</th>
-                        <th>Início da Obra</th>
-                        <th>Tempo Corrido</th>
-                        <th>Período do Relatório</th>
-                        <th>Responsável Técnico</th>
+                        <th>Nº da ART</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>{{daily.project.name}}</td>
-                        <td>{{daily.project.description}}</td>
-                        <td>{{daily.project.startDate}}</td>
-                        <td>{{daily.project.elapsedTime}}</td>
-                        <td>{{daily.reportPeriod.start}} - {{daily.reportPeriod.end}}</td>
-                        <td>{{daily.technicalResponsible}}</td>
+                        <td>{{diary.projectName}}</td>
+                        <td>{{diary.description}}</td>
+                        <td>{{diary.artNumber}}</td>
                     </tr>
                 </tbody>
             </table>
         </section>
 
         <section>
-            <h2>Observações</h2>
+            <h2>Datas do Projeto</h2>
             <table>
+                <thead>
+                    <tr>
+                        <th>Início da Obra</th>
+                        <th>Início do Período</th>
+                        <th>Fim do Período</th>
+                        <th>Tempo Decorrido</th>
+                    </tr>
+                </thead>
                 <tbody>
                     <tr>
-                        <td>{{daily.observations}}</td>
+                        <td>{{formatDate diary.startDate}}</td>
+                        <td>{{diary.periodStart}}</td>
+                        <td>{{diary.periodEnd}}</td>
+                        <td>{{diary.elapsedTime}}</td>
                     </tr>
                 </tbody>
             </table>
         </section>
 
-        <section>
-            <h2>Turno/Tempo</h2>
+        <section class="workdays-section">
+            <h2>Dias Trabalhados</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Domingo</th>
+                        <th>Segunda</th>
+                        <th>Terça</th>
+                        <th>Quarta</th>
+                        <th>Quinta</th>
+                        <th>Sexta</th>
+                        <th>Sábado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: center;">{{#if diary.workdays.sunday}}X{{/if}}</td>
+                        <td style="text-align: center;">{{#if diary.workdays.monday}}X{{/if}}</td>
+                        <td style="text-align: center;">{{#if diary.workdays.tuesday}}X{{/if}}</td>
+                        <td style="text-align: center;">{{#if diary.workdays.wednesday}}X{{/if}}</td>
+                        <td style="text-align: center;">{{#if diary.workdays.thursday}}X{{/if}}</td>
+                        <td style="text-align: center;">{{#if diary.workdays.friday}}X{{/if}}</td>
+                        <td style="text-align: center;">{{#if diary.workdays.saturday}}X{{/if}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        
+        <section class="workdays-section">
+            <h2>Turnos Trabalhados</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Manhã</th>
+                        <th>Tarde</th>
+                        <th>Noite</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: center;">{{#if diary.shifts.morning}}X{{/if}}</td>
+                        <td style="text-align: center;">{{#if diary.shifts.afternoon}}X{{/if}}</td>
+                        <td style="text-align: center;">{{#if diary.shifts.night}}X{{/if}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="weather-section">
+            <h2>Condições Climáticas</h2>
             <table>
                 <thead>
                     <tr>
                         <th>Turno</th>
-                        <th>Tempo</th>
+                        <th>{{{weatherIcon "sunny"}}} Sol</th>
+                        <th>{{{weatherIcon "cloudy"}}} Nublado</th>
+                        <th>{{{weatherIcon "rainy"}}} Chuva</th>
+                        <th>{{{weatherIcon "impracticable"}}} Impraticável</th>
+                        <th>{{{weatherIcon "notApplicable"}}} Não se aplica</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td>Manhã</td>
-                        <td>{{daily.shifts.morning}}</td>
+                        <td style="text-align: center;">{{#if diary.weather.morning.sunny}}X{{/if}}</td>
+                        <td style="text-align: center;">{{#if diary.weather.morning.cloudy}}X{{/if}}</td>
+                        <td style="text-align: center;">{{#if diary.weather.morning.rainy}}X{{/if}}</td>
+                        <td style="text-align: center;">{{#if diary.weather.morning.impracticable}}X{{/if}}</td>
+                        <td style="text-align: center;">{{#if diary.weather.morning.notApplicable}}X{{/if}}</td>
                     </tr>
                     <tr>
                         <td>Tarde</td>
-                        <td>{{daily.shifts.afternoon}}</td>
+                        <td style="text-align: center;">{{#if diary.weather.afternoon.sunny}}X{{/if}}</td>
+                        <td style="text-align: center;">{{#if diary.weather.afternoon.cloudy}}X{{/if}}</td>
+                        <td style="text-align: center;">{{#if diary.weather.afternoon.rainy}}X{{/if}}</td>
+                        <td style="text-align: center;">{{#if diary.weather.afternoon.impracticable}}X{{/if}}</td>
+                        <td style="text-align: center;">{{#if diary.weather.afternoon.notApplicable}}X{{/if}}</td>
                     </tr>
                     <tr>
                         <td>Noite</td>
-                        <td>{{daily.shifts.night}}</td>
+                        <td style="text-align: center;">{{#if diary.weather.night.sunny}}X{{/if}}</td>
+                        <td style="text-align: center;">{{#if diary.weather.night.cloudy}}X{{/if}}</td>
+                        <td style="text-align: center;">{{#if diary.weather.night.rainy}}X{{/if}}</td>
+                        <td style="text-align: center;">{{#if diary.weather.night.impracticable}}X{{/if}}</td>
+                        <td style="text-align: center;">{{#if diary.weather.night.notApplicable}}X{{/if}}</td>
                     </tr>
                 </tbody>
             </table>
         </section>
 
-        <section>
-            <h2>Tarefas Realizadas</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Dia</th>
-                        <th>Atividades</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#daily.activities}}
-                    <tr>
-                        <td>{{date}}</td>
-                        <td>{{description}}</td>
-                    </tr>
-                    {{/daily.activities}}
-                </tbody>
-            </table>
+        {{#each diary.weeks}}
+        <section class="week-section">
+            <h2>{{formatWeekNumber @index}} Semana - Tarefas Realizadas</h2>
+            <div class="week-tasks">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 20%;">Data</th>
+                            <th style="width: 80%;">Descrição</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#each this.tasks}}
+                        <tr class="day-entry">
+                            <td>{{formatDate this.date}}</td>
+                            <td>{{this.description}}</td>
+                        </tr>
+                        {{/each}}
+                    </tbody>
+                </table>
+            </div>
         </section>
+        {{/each}}
 
         <section>
             <h2>Equipe Envolvida</h2>
             <table>
                 <thead>
                     <tr>
-                        <th>Cargo</th>
+                        <th>Função</th>
                         <th>Quantidade</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {{#daily.team}}
+                    {{#each diary.team}}
                     <tr>
-                        <td>{{role}}</td>
-                        <td>{{quantity}}</td>
+                        <td>{{this.role}}</td>
+                        <td>{{this.quantity}}</td>
                     </tr>
-                    {{/daily.team}}
+                    {{/each}}
                 </tbody>
             </table>
         </section>
 
         <section>
             <h2>Equipamentos Utilizados</h2>
-            <table class="many-columns">
+            <table>
                 <thead>
                     <tr>
-                        <th>Código</th>
                         <th>Descrição</th>
-                        <th>Quantidade</th>
+                        <th>Quantidade Utilizada</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {{#daily.equipment}}
+                    {{#each diary.equipment}}
                     <tr>
-                        <td>{{code}}</td>
-                        <td>{{description}}</td>
-                        <td>{{quantity}}</td>
+                        <td>{{this.description}}</td>
+                        <td>{{this.quantity}}</td>
                     </tr>
-                    {{/daily.equipment}}
+                    {{/each}}
                 </tbody>
             </table>
         </section>
 
         <div class="signature">
-            <p><strong>Assinatura:</strong> _____________________________</p>
-        </div>
-
-        <footer>
-            <img class="footer-logo" src="{{daily.logo}}" alt="Logo da Empresa">
-            <div class="footer-info">
-                <p>88 99377-9889 | 88 99363-0999</p>
-                <p>saviresconstrucoes@gmail.com | salles_cavalcante@hotmail.com</p>
-                <p>Rua Sub Estação, Nº 25, Bairro Regis Diniz, CEP 62322-468, Tianguá-CE</p>
-                <p>CNPJ: 22.346.772/0001-12</p>
+            <div class="signature-item">
+                <p><strong>Assinatura</strong></p>
             </div>
-        </footer>
+            <div class="signature-item">
+                <p><strong>Assinatura</strong></p>
+            </div>
+        </div>
     </div>
+</div>
+
+{{#showFooter diary.isSavires}}
+<div class="footer-container">
+    <footer>
+        <img class="footer-logo" src="{{diary.logo}}" alt="Logo da Empresa">
+        <div class="footer-info">
+            <p>88 99377-9889 | 88 99363-0999</p>
+            <p>savires@gmail.com | saviresengenharia@gmail.com</p>
+            <p>Rua Sub Estação, Nº 25, Bairro Regis Diniz, CEP 62322-468, Tianguá-CE</p>
+            <p>CNPJ: 22.346.772/0001-12</p>
+        </div>
+    </footer>
+</div>
+{{/showFooter}}
+
 </body>
 </html>
+

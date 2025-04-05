@@ -28,6 +28,11 @@ Handlebars.registerHelper('formatDate', function (date) {
     if (!date) return '';
 
     try {
+        if (typeof date === 'string' && date.includes('/')) {
+            const [day, month, year] = date.split('/');
+            return date;
+        }
+        
         const dateObj = new Date(date);
         if (isNaN(dateObj.getTime())) return '';
 

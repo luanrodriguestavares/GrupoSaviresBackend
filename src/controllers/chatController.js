@@ -22,13 +22,16 @@ exports.sendMessage = async (req, res) => {
 
     try {
         const user = await User.findByPk(userId)
-
+        const now = new Date()
+        
+        const brazilTime = new Date(now.getTime() - (3 * 60 * 60 * 1000))
+        
         const newMessage = await Message.create({
             content,
             sender: user.username,
             UserId: user.id,
-            date: new Date().toISOString().split("T")[0],
-            time: new Date().toISOString().split("T")[1].split(".")[0],
+            date: brazilTime.toISOString().split("T")[0],
+            time: brazilTime.toISOString().split("T")[1].split(".")[0],
         })
 
         const messageWithUser = await Message.findByPk(newMessage.id, {

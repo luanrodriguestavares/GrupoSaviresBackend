@@ -17,7 +17,6 @@ const { promisify } = require("util");
 const writeFileAsync = promisify(fs.writeFile);
 const unlinkAsync = promisify(fs.unlink);
 
-// Register Handlebars helpers for conditional display if not already registered
 if (!Handlebars.helpers.displayLogoOrText) {
     Handlebars.registerHelper('displayLogoOrText', function (isSavires, logo, companyName) {
         if (isSavires) {
@@ -38,7 +37,6 @@ if (!Handlebars.helpers.showFooter) {
     });
 }
 
-// Add the missing formatDate helper
 if (!Handlebars.helpers.formatDate) {
     Handlebars.registerHelper('formatDate', function (date) {
         if (!date) return '';
@@ -56,7 +54,6 @@ if (!Handlebars.helpers.formatDate) {
 }
 
 async function processImageWithOverlay(photo, project) {
-    // Existing image processing code...
     try {
         if (!photo.s3Url) {
             console.error("Foto sem URL S3:", photo.id);
@@ -164,12 +161,11 @@ function delay(ms) {
 
 exports.generatePhotoReport = async (req, res) => {
     const { projectId } = req.params;
-    const { startDate, endDate, isSavires = true } = req.query; // Changed parameter name
+    const { startDate, endDate, isSavires = true } = req.query; 
     const isHtmlRequest = req.path.endsWith("/html");
     const isPdfRequest = req.path.endsWith("/pdf");
     const createdBy = req.user?.id || "00000000-0000-0000-0000-000000000000";
 
-    // Convert isSavires to boolean
     const displaySaviresLogo = isSavires === 'true' || isSavires === true;
 
     if (!isPdfRequest && !isHtmlRequest) {
@@ -238,13 +234,12 @@ exports.generatePhotoReport = async (req, res) => {
                 responsible: project.technicalResponsibility,
                 description: project.description,
                 logo: logoBase64,
-                isSavires: displaySaviresLogo, // Changed parameter name
-                executingCompanyName: project.executingCompanyName, // Add company name for text display
+                isSavires: displaySaviresLogo, 
+                executingCompanyName: project.executingCompanyName, 
                 photos: processedPhotos,
             },
         };
 
-        // Read the template file
         const templatePath = path.join(__dirname, "../../templates/photo_report.html");
         let templateSource = fs.readFileSync(templatePath, "utf8");
 
@@ -324,12 +319,11 @@ exports.generatePhotoReport = async (req, res) => {
 
 exports.generateCompletePhotoReport = async (req, res) => {
     const { projectId } = req.params;
-    const { isSavires = true } = req.query; // Changed parameter name
+    const { isSavires = true } = req.query;
     const isHtmlRequest = req.path.endsWith("/html");
     const isPdfRequest = req.path.endsWith("/pdf");
     const createdBy = req.user?.id || "00000000-0000-0000-0000-000000000000";
 
-    // Convert isSavires to boolean
     const displaySaviresLogo = isSavires === 'true' || isSavires === true;
 
     if (!isPdfRequest && !isHtmlRequest) {
@@ -388,13 +382,12 @@ exports.generateCompletePhotoReport = async (req, res) => {
                 responsible: technicalResponsibleName,
                 description: project.description,
                 logo: logoBase64,
-                isSavires: displaySaviresLogo, // Changed parameter name
-                executingCompanyName: project.executingCompanyName, // Add company name for text display
+                isSavires: displaySaviresLogo, 
+                executingCompanyName: project.executingCompanyName, 
                 photos: processedPhotos,
             },
         };
 
-        // Read the template file
         const templatePath = path.join(__dirname, "../../templates/photo_report.html");
         let templateSource = fs.readFileSync(templatePath, "utf8");
 

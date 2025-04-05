@@ -161,12 +161,19 @@
         }
 
         .signature {
-            margin-top: 8mm;
+            margin-top: 15mm;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
             height: 15mm;
             text-align: center;
+        }
+        
+        .signature-item {
+            flex: 1;
+            border-top: 1pt solid #333;
+            margin: 0 10mm;
+            padding-top: 2mm;
         }
 
         footer {
@@ -240,6 +247,12 @@
                 }
             }
             
+            @page:first {
+                @bottom-center {
+                    content: none;
+                }
+            }
+            
             footer {
                 position: fixed;
                 bottom: 0;
@@ -292,7 +305,12 @@
         </section>
 
         <div class="signature">
-            <p><strong>Assinatura:</strong> _____________________________</p>
+            <div class="signature-item">
+                <p><strong>Assinatura</strong></p>
+            </div>
+            <div class="signature-item">
+                <p><strong>Assinatura</strong></p>
+            </div>
         </div>
 
         {{#showFooter report.isSavires}}
@@ -300,7 +318,7 @@
             <img class="footer-logo" src="{{report.logo}}" alt="Logo da Empresa">
             <div class="footer-info">
                 <p>88 99377-9889 | 88 99363-0999</p>
-                <p>contato@savires.com.br | comercial@savires.com.br</p>
+                <p>contato@gruposavires.com | comercial@gruposavires.com</p>
                 <p>Rua Sub Estação, Nº 25, Bairro Regis Diniz, CEP 62322-468, Tianguá-CE</p>
                 <p>CNPJ: 22.346.772/0001-12</p>
             </div>
@@ -309,3 +327,4 @@
     </div>
 </body>
 </html>
+
