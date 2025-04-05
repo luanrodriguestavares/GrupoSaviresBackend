@@ -95,6 +95,8 @@ const Project = sequelize.define('Project', {
         type: DataTypes.STRING,
         allowNull: false,
     }
+}, {
+    freezeTableName: true
 });
 
 module.exports = Project;

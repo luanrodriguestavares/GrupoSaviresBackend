@@ -13,7 +13,7 @@ const Report = sequelize.define('Report', {
         type: DataTypes.UUID,
         allowNull: false,
         references: {
-            model: 'Project',
+            model: Project,
             key: 'id'
         }
     },
@@ -42,6 +42,8 @@ const Report = sequelize.define('Report', {
         allowNull: false,
         defaultValue: '00000000-0000-0000-0000-000000000000'
     }
+}, {
+    freezeTableName: true
 });
 
 Report.belongsTo(Project, { foreignKey: 'projectId' });
