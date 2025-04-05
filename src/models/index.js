@@ -5,8 +5,8 @@ const Project = require('./Project');
 const Photo = require('./Photo');
 
 // Associações entre usuários e projetos 
-User.belongsToMany(Project, { through: 'UserProjects', foreignKey: 'userId', otherKey: 'projectId' });
-Project.belongsToMany(User, { through: 'UserProjects', foreignKey: 'projectId', otherKey: 'userId' });
+User.belongsToMany(Project, { through: 'UserProject', foreignKey: 'userId', otherKey: 'projectId' });
+Project.belongsToMany(User, { through: 'UserProject', foreignKey: 'projectId', otherKey: 'userId' });
 
 // Associações de mensagem com usuário
 User.hasMany(Message);

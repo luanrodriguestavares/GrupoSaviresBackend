@@ -72,7 +72,7 @@ const Photo = sequelize.define('Photo', {
         type: DataTypes.UUID,
         allowNull: false,
         references: {
-            model: 'Projects',
+            model: 'Project',
             key: 'id'
         }
     },
@@ -80,7 +80,7 @@ const Photo = sequelize.define('Photo', {
         type: DataTypes.UUID,
         allowNull: false,
         references: {
-            model: 'Users',
+            model: 'User',
             key: 'id'
         }
     }
