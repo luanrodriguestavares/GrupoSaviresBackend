@@ -13,7 +13,7 @@ const Report = sequelize.define('Report', {
         type: DataTypes.UUID,
         allowNull: false,
         references: {
-            model: 'Projects',
+            model: 'Project',
             key: 'id'
         }
     },
