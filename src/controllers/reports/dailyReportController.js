@@ -10,34 +10,6 @@ const Handlebars = require("handlebars")
 const { logoBase64 } = require("../../constants/logoConstants")
 const { Op } = require("sequelize")
 
-Handlebars.registerHelper("formatReportTitle", (projectName, date) => {
-    if (!projectName) return "Sem nome"
-
-    let formattedDate = ""
-    if (date) {
-        try {
-            const dateObj =
-                typeof date === "string" && date.includes("/") ? new Date(date.split("/").reverse().join("-")) : new Date(date)
-
-            if (!isNaN(dateObj.getTime())) {
-                const options = {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                }
-                formattedDate = dateObj.toLocaleDateString("pt-BR", options)
-            } else {
-                formattedDate = date
-            }
-        } catch (error) {
-            console.error("Erro ao formatar data do título:", error)
-            formattedDate = date
-        }
-    }
-
-    return `${projectName} - ${formattedDate}`
-})
-
 Handlebars.registerHelper("displayLogoOrText", (isSavires, logo, companyName) => {
     if (isSavires) {
         return new Handlebars.SafeString(`<img class="header-logo" src="${logo}" alt="Logo da Empresa">`)
@@ -59,10 +31,7 @@ Handlebars.registerHelper("formatDate", (date) => {
 
     try {
         if (typeof date === "string" && date.includes("/")) {
-            const parts = date.split("/")
-            if (parts.length === 3) {
-                return date
-            }
+            return date
         }
 
         const dateObj = new Date(date)
@@ -70,7 +39,7 @@ Handlebars.registerHelper("formatDate", (date) => {
 
         return dateObj.toLocaleDateString("pt-BR")
     } catch (error) {
-        console.error("Erro ao formatar data:", error)
+        console.error("Error formatting date:", error)
         return ""
     }
 })
@@ -93,33 +62,6 @@ Handlebars.registerHelper("weatherIcon", (condition) => {
 
     return new Handlebars.SafeString(icons[condition] || "")
 })
-
-const originalGenerateFilename = ReportService.generateFilename
-ReportService.generateFilename = (projectName, reportType, format) => {
-    const now = new Date()
-    const day = String(now.getDate()).padStart(2, "0")
-    const month = String(now.getMonth() + 1).padStart(2, "0")
-    const year = now.getFullYear()
-    const formattedDate = `${day}-${month}-${year}`
-
-    const reportTypeMap = {
-        "daily-report": "Relatorio-Diario",
-        daily: "Relatorio-Diario",
-        photo: "Relatorio-Fotografico",
-        fotos: "Relatorio-Fotografico",
-        fotos_completo: "Relatorio-Fotografico-Completo",
-        "project-details": "Detalhes-da-Obra",
-    }
-
-    const formattedReportType = reportTypeMap[reportType] || reportType
-
-    const sanitizedProjectName = projectName
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-zA-Z0-9]/g, "-")
-
-    return `${formattedReportType}-${sanitizedProjectName}-${formattedDate}.${format}`
-}
 
 exports.generateDailyReport = async (req, res) => {
     const { projectId } = req.params
@@ -374,38 +316,38 @@ exports.generateDailyReport = async (req, res) => {
                     format,
                     filename,
                     "text/html",
-                    createdBy,
+                    createdBy
                 )
                 return res.status(200).json({
                     message: "Relatório HTML gerado com sucesso",
                     reportUrl: report.url,
                     reportId: report.id,
-                    isSavires: displaySaviresLogo,
+                    isSavires: displaySaviresLogo
                 })
             }
 
             const browser = await puppeteer.launch({
                 headless: true,
-                args: ["--no-sandbox", "--disable-setuid-sandbox"],
-            })
-            const page = await browser.newPage()
+                args: ["--no-sandbox", "--disable-setuid-sandbox"]
+            });
+            const page = await browser.newPage();
 
             await page.setViewport({
                 width: 1200,
                 height: 1600,
-                deviceScaleFactor: 2,
-            })
+                deviceScaleFactor: 2
+            });
 
-            await page.setContent(html, { waitUntil: "networkidle0" })
+            await page.setContent(html, { waitUntil: "networkidle0" });
             const pdfBuffer = await page.pdf({
                 format: "A4",
                 printBackground: true,
-                margin: { top: "10mm", bottom: "25mm", left: "10mm", right: "10mm" },
+                margin: { top: "10mm", bottom: "10mm", left: "10mm", right: "10mm" },
                 displayHeaderFooter: false,
                 scale: 0.75,
-                preferCSSPageSize: false,
-            })
-            await browser.close()
+                preferCSSPageSize: false
+            });
+            await browser.close();
 
             const report = await ReportService.uploadReport(
                 projectId,
@@ -414,15 +356,15 @@ exports.generateDailyReport = async (req, res) => {
                 "pdf",
                 filename,
                 "application/pdf",
-                createdBy,
-            )
+                createdBy
+            );
 
             res.status(200).json({
                 message: "Relatório diário PDF gerado com sucesso",
                 reportUrl: report.url,
                 reportId: report.id,
-                isSavires: displaySaviresLogo,
-            })
+                isSavires: displaySaviresLogo
+            });
 
             return
         }
@@ -602,38 +544,39 @@ exports.generateDailyReport = async (req, res) => {
                 format,
                 filename,
                 "text/html",
-                createdBy,
+                createdBy
             )
             return res.status(200).json({
                 message: "Relatório HTML gerado com sucesso",
                 reportUrl: report.url,
                 reportId: report.id,
-                isSavires: displaySaviresLogo,
+                isSavires: displaySaviresLogo
             })
         }
 
+        // Gerar PDF
         const browser = await puppeteer.launch({
             headless: true,
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
-        })
-        const page = await browser.newPage()
+            args: ["--no-sandbox", "--disable-setuid-sandbox"]
+        });
+        const page = await browser.newPage();
 
         await page.setViewport({
             width: 1200,
             height: 1600,
-            deviceScaleFactor: 2,
-        })
+            deviceScaleFactor: 2
+        });
 
-        await page.setContent(html, { waitUntil: "networkidle0" })
+        await page.setContent(html, { waitUntil: "networkidle0" });
         const pdfBuffer = await page.pdf({
             format: "A4",
             printBackground: true,
-            margin: { top: "10mm", bottom: "25mm", left: "10mm", right: "10mm" },
+            margin: { top: "10mm", bottom: "10mm", left: "10mm", right: "10mm" },
             displayHeaderFooter: false,
             scale: 0.75,
-            preferCSSPageSize: false,
-        })
-        await browser.close()
+            preferCSSPageSize: false
+        });
+        await browser.close();
 
         const report = await ReportService.uploadReport(
             projectId,
@@ -642,22 +585,22 @@ exports.generateDailyReport = async (req, res) => {
             "pdf",
             filename,
             "application/pdf",
-            createdBy,
-        )
+            createdBy
+        );
 
         res.status(200).json({
             message: "Relatório diário PDF gerado com sucesso",
             reportUrl: report.url,
             reportId: report.id,
-            isSavires: displaySaviresLogo,
-        })
+            isSavires: displaySaviresLogo
+        });
     } catch (error) {
-        console.error("Erro ao gerar o relatório diário:", error)
-        res.status(500).json({
-            message: "Erro ao gerar o relatório diário",
+        console.error("Erro ao gerar o relatório diário:", error);
+        res.status(500).json({ 
+            message: "Erro ao gerar o relatório diário", 
             error: error.message,
-            details: error.stack,
-        })
+            details: error.stack 
+        });
     }
 }
 
@@ -666,7 +609,7 @@ exports.getDailyReports = async (req, res) => {
     try {
         const reports = await Report.findAll({
             where: { projectId, type: "daily" },
-            order: [["createdAt", "DESC"]],
+            order: [["createdAt", "DESC"]]
         })
         res.status(200).json(reports)
     } catch (error) {

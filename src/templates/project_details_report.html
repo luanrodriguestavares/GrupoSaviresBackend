@@ -13,7 +13,7 @@
 
         @page {
             size: A4 portrait; 
-            margin: 15mm 10mm 25mm 10mm; 
+            margin: 15mm 10mm; 
         }
 
         body {
@@ -28,8 +28,6 @@
             width: 100%;
             max-width: 190mm;
             margin: 0 auto;
-            padding-bottom: 30mm;
-            position: relative;
         }
 
         h1 {
@@ -121,14 +119,12 @@
         }
 
         .signature {
-            margin-top: 20mm;
-            margin-bottom: 25mm;
+            margin-top: 15mm;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 15mm;
+            height: 15mm; 
             text-align: center;
-            page-break-inside: avoid;
         }
         
         .signature-item {
@@ -139,19 +135,15 @@
         }
 
         footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            position: running(footer);
             font-size: 8pt;
             text-align: left;
             border-top: 0.75pt solid #ddd;
             padding-top: 3mm;
-            padding-bottom: 5mm;
+            margin-top: 8mm;
+            padding-bottom: 8mm;
             display: flex;
             align-items: center;
-            background-color: white;
-            margin: 0 10mm;
         }
 
         footer .footer-logo {
@@ -183,7 +175,6 @@
                 max-width: none;
                 margin: 0;
                 padding: 5mm;
-                padding-bottom: 30mm;
             }
             
             section, table {
@@ -194,11 +185,22 @@
                 page-break-after: avoid;
             }
             
+            @page {
+                @bottom-center {
+                    content: element(footer);
+                }
+            }
+            
+            @page:first {
+                @bottom-center {
+                    content: none;
+                }
+            }
+            
             footer {
                 position: fixed;
                 bottom: 0;
-                width: calc(100% - 20mm);
-                background-color: white;
+                width: 100%;
             }
         }
     </style>
@@ -208,7 +210,7 @@
         <header>
             {{displayLogoOrText project.isSavires project.logo project.executingCompanyName}}
             <div class="header-info">
-                <h1>Detalhes da Obra - {{formatReportTitle project.name project.registrationDate}}</h1>
+                <h1>Detalhes da obra</h1>
                 <p><strong>Data:</strong> {{project.registrationDate}}</p>
                 <p><strong>Obra:</strong> {{project.name}}</p>
                 <p><strong>Responsável:</strong> {{project.responsible}}</p>
@@ -343,8 +345,8 @@
             <img class="footer-logo" src="{{project.logo}}" alt="Logo da Empresa">
             <div class="footer-info">
                 <p>88 99377-9889 | 88 99363-0999</p>
-                <p>contato@empresa.com | comercial@empresa.com</p>
-                <p>Rua da Sub Estação, N° 25, Bairro Regis Diniz, Tianguá - CE</p>
+                <p>contato@gruposavires.com | comercial@gruposavires.com</p>
+                <p>Rua Sub Estação, Nº 25, Bairro Regis Diniz, CEP 62322-468, Tianguá-CE</p>
                 <p>CNPJ: 22.346.772/0001-12</p>
             </div>
         </footer>

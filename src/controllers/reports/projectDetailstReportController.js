@@ -91,35 +91,6 @@ Handlebars.registerHelper('formatDocument', function (doc) {
     return doc;
 });
 
-Handlebars.registerHelper("formatReportTitle", (projectName, date) => {
-    if (!projectName) return "Sem nome";
-    
-    let formattedDate = "";
-    if (date) {
-        try {
-            const dateObj = typeof date === 'string' && date.includes('/') 
-                ? new Date(date.split('/').reverse().join('-')) 
-                : new Date(date);
-            
-            if (!isNaN(dateObj.getTime())) {
-                const options = { 
-                    day: 'numeric', 
-                    month: 'long', 
-                    year: 'numeric' 
-                };
-                formattedDate = dateObj.toLocaleDateString('pt-BR', options);
-            } else {
-                formattedDate = date;
-            }
-        } catch (error) {
-            console.error("Erro ao formatar data do título:", error);
-            formattedDate = date;
-        }
-    }
-    
-    return `${projectName} - ${formattedDate}`;
-});
-
 exports.generateProjectDetailsReport = async (req, res) => {
     const { projectId } = req.params;
     const { isSavires = true } = req.query;

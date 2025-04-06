@@ -13,7 +13,7 @@
 
         @page {
             size: A4 portrait;
-            margin: 15mm 10mm 25mm 10mm;
+            margin: 15mm 10mm 25mm 10mm; /* Aumentado o margin-bottom para acomodar o rodapé */
         }
 
         body {
@@ -22,17 +22,14 @@
             line-height: 1.3;
             color: #333;
             background-color: white;
+            position: relative;
         }
 
         .container {
             width: 100%;
             max-width: 190mm;
             margin: 0 auto;
-            padding-bottom: 30mm;
-            min-height: calc(100vh - 30mm);
-            display: flex;
-            flex-direction: column;
-            position: relative;
+            padding-bottom: 30mm; /* Espaço para o rodapé e assinaturas */
         }
 
         h1 {
@@ -140,7 +137,6 @@
         .week-section {
             margin-bottom: 8mm;
             page-break-inside: auto;
-            clear: both;
         }
 
         .week-tasks {
@@ -155,15 +151,18 @@
             margin-bottom: 5mm;
         }
 
+        .signature-section {
+            margin-top: 15mm;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
         .signature {
-            margin-top: 20mm;
-            margin-bottom: 25mm;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 15mm;
+            height: 15mm; 
             text-align: center;
-            page-break-inside: avoid;
         }
         
         .signature-item {
@@ -182,11 +181,11 @@
             text-align: left;
             border-top: 0.75pt solid #ddd;
             padding-top: 3mm;
+            margin-top: 8mm;
             padding-bottom: 5mm;
             display: flex;
             align-items: center;
             background-color: white;
-            margin: 0 10mm;
         }
 
         footer .footer-logo {
@@ -217,8 +216,7 @@
                 width: 100%;
                 max-width: none;
                 margin: 0;
-                padding: 5mm;
-                padding-bottom: 30mm;
+                padding: 5mm 5mm 30mm 5mm;
             }
             
             section, table {
@@ -236,11 +234,17 @@
             .week-tasks {
                 page-break-inside: avoid;
             }
-
+            
+            .signature-section {
+                page-break-before: auto;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            
             footer {
                 position: fixed;
                 bottom: 0;
-                width: calc(100% - 20mm);
+                width: 100%;
                 background-color: white;
             }
         }
@@ -251,7 +255,7 @@
         <header>
             {{displayLogoOrText diary.isSavires diary.logo diary.executingCompanyName}}
             <div class="header-info">
-                <h1>Relatório Diário de Obra - {{formatReportTitle diary.projectName diary.reportDate}}</h1>
+                <h1>Diário de Obra</h1>
                 <p><strong>Data:</strong> {{formatDate diary.reportDate}}</p>
                 <p><strong>Obra:</strong> {{diary.projectName}}</p>
                 <p><strong>Responsável:</strong> {{diary.responsible}}</p>
@@ -454,28 +458,28 @@
             </table>
         </section>
 
-        <div class="signature">
-            <div class="signature-item">
-                <p><strong>Assinatura</strong></p>
-            </div>
-            <div class="signature-item">
-                <p><strong>Assinatura</strong></p>
+        <div class="signature-section">
+            <div class="signature">
+                <div class="signature-item">
+                    <p><strong>Assinatura</strong></p>
+                </div>
+                <div class="signature-item">
+                    <p><strong>Assinatura</strong></p>
+                </div>
             </div>
         </div>
     </div>
 
-{{#showFooter diary.isSavires}}
-<footer>
-    <img class="footer-logo" src="{{diary.logo}}" alt="Logo da Empresa">
-    <div class="footer-info">
-        <p>88 99377-9889 | 88 99363-0999</p>
-        <p>contato@empresa.com | comercial@empresa.com</p>
-        <p>Rua da Sub Estação, N° 25, Bairro Regis Diniz, Tianguá - CE</p>
-        <p>CNPJ: 22.346.772/0001-12</p>
-    </div>
-</footer>
-{{/showFooter}}
-
+    {{#showFooter diary.isSavires}}
+    <footer>
+        <img class="footer-logo" src="{{diary.logo}}" alt="Logo da Empresa">
+        <div class="footer-info">
+            <p>88 99377-9889 | 88 99363-0999</p>
+            <p>contato@savires.com | comercial@savires.com</p>
+            <p>Rua Sub Estação, Nº 25, Bairro Regis Diniz, CEP 62322-468, Tianguá-CE</p>
+            <p>CNPJ: 22.346.772/0001-12</p>
+        </div>
+    </footer>
+    {{/showFooter}}
 </body>
 </html>
-
