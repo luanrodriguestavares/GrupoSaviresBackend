@@ -59,6 +59,7 @@ function formatDateTimeExact(dateString) {
     try {
         console.log("Processing date:", dateString);
         
+        // Extrair valores diretamente da string
         const parts = dateString.split(' ');
         if (parts.length !== 2) {
             console.log("Invalid date format (parts):", dateString);
@@ -73,12 +74,14 @@ function formatDateTimeExact(dateString) {
             return dateString;
         }
 
+        // Extrair componentes como strings
         const year = dateParts[0];
         const month = dateParts[1];
         const day = dateParts[2];
         const hours = timeParts[0];
         const minutes = timeParts[1];
         
+        // Formatar exatamente no padrão brasileiro dd/mm/aaaa - hh:mm
         const formatted = `${day}/${month}/${year} - ${hours}:${minutes}`;
         console.log("Formatted date:", formatted);
         return formatted;
@@ -121,7 +124,6 @@ async function processImageWithOverlay(photo, project) {
         let formattedDateTime = "Data não disponível";
         if (photo.captureDate) {
             formattedDateTime = formatDateTimeExact(photo.captureDate);
-            console.log("Formatted date for overlay:", formattedDateTime);
         }
 
         const addressLine = [
