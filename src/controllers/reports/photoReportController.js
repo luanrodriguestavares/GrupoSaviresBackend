@@ -53,23 +53,25 @@ if (!Handlebars.helpers.formatDate) {
     });
 }
 
-function formatDateTimePreservingTime(dateString) {
+function formatDateTimeExact(dateString) {
     if (!dateString) return '';
 
     try {
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return '';
+        const parts = dateString.split(' ');
+        if (parts.length !== 2) return '';
 
-        // Extract components directly from the date object
-        // This preserves the time as stored in the database
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
-        const hours = date.getHours().toString().padStart(2, '0');
-        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const dateParts = parts[0].split('-');
+        const timeParts = parts[1].split(':');
 
-        // Format in Brazilian style but preserve the original hours/minutes
-        return `${day}/${month}/${year} ${hours}:${minutes}`;
+        if (dateParts.length !== 3 || timeParts.length < 2) return '';
+
+        const year = parseInt(dateParts[0], 10);
+        const month = parseInt(dateParts[1], 10);
+        const day = parseInt(dateParts[2], 10);
+        const hours = parseInt(timeParts[0], 10);
+        const minutes = parseInt(timeParts[1], 10);
+
+        return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year} ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
     } catch (error) {
         console.error('Error formatting date:', error);
         return '';
@@ -100,11 +102,7 @@ async function processImageWithOverlay(photo, project) {
 
         await writeFileAsync(tempFilePath, imageBuffer);
 
-        const captureDate = photo.captureDate ? new Date(photo.captureDate) : new Date();
-        // Replace this line:
-        // const formattedDateTime = captureDate.toLocaleString("pt-BR");
-        // With this:
-        const formattedDateTime = formatDateTimePreservingTime(photo.captureDate);
+        const formattedDateTime = formatDateTimeExact(photo.captureDate);
 
         const addressLine = [
             addressInfo.street,
