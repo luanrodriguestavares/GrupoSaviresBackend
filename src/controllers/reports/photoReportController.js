@@ -53,6 +53,29 @@ if (!Handlebars.helpers.formatDate) {
     });
 }
 
+function formatDateTimePreservingTime(dateString) {
+    if (!dateString) return '';
+
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '';
+
+        // Extract components directly from the date object
+        // This preserves the time as stored in the database
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+
+        // Format in Brazilian style but preserve the original hours/minutes
+        return `${day}/${month}/${year} ${hours}:${minutes}`;
+    } catch (error) {
+        console.error('Error formatting date:', error);
+        return '';
+    }
+}
+
 async function processImageWithOverlay(photo, project) {
     try {
         if (!photo.s3Url) {
@@ -78,7 +101,10 @@ async function processImageWithOverlay(photo, project) {
         await writeFileAsync(tempFilePath, imageBuffer);
 
         const captureDate = photo.captureDate ? new Date(photo.captureDate) : new Date();
-        const formattedDateTime = captureDate.toLocaleString("pt-BR");
+        // Replace this line:
+        // const formattedDateTime = captureDate.toLocaleString("pt-BR");
+        // With this:
+        const formattedDateTime = formatDateTimePreservingTime(photo.captureDate);
 
         const addressLine = [
             addressInfo.street,
@@ -105,34 +131,34 @@ async function processImageWithOverlay(photo, project) {
             : "";
 
         const svgText = `
-        <svg width="${imageWidth}" height="${imageHeight}">
-          <style>
-            .text-bg {
-              fill: rgba(0,0,0,0.0);
-            }
-            .text {
-              fill: white;
-              font-size: ${fontSize}px;
-              font-weight: bold;
-              font-family: Arial, sans-serif;
-              text-shadow: 2px 2px 3px rgba(0,0,0,0.8);
-            }
-          </style>
-          <rect 
-            class="text-bg" 
-            x="${paddingX - 10}" 
-            y="${imageHeight - paddingY - bgHeight - 10}" 
-            width="${imageWidth - (paddingX * 2) + 20}" 
-            height="${bgHeight + 20}" 
-            rx="5" 
-          />
-          <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 5}" class="text">${formattedDateTime}</text>
-          <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 4 + 10}" class="text">${coordinatesText}</text>
-          <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 3 + 20}" class="text">${addressInfo.cep}</text>
-          <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 2 + 30}" class="text">${addressLine}</text>
-          <text x="${paddingX}" y="${imageHeight - paddingY - fontSize + 40}" class="text">${project.executingCompanyName || ""}</text>
-        </svg>
-      `;
+          <svg width="${imageWidth}" height="${imageHeight}">
+            <style>
+              .text-bg {
+                fill: rgba(0,0,0,0.0);
+              }
+              .text {
+                fill: white;
+                font-size: ${fontSize}px;
+                font-weight: bold;
+                font-family: Arial, sans-serif;
+                text-shadow: 2px 2px 3px rgba(0,0,0,0.8);
+              }
+            </style>
+            <rect 
+              class="text-bg" 
+              x="${paddingX - 10}" 
+              y="${imageHeight - paddingY - bgHeight - 10}" 
+              width="${imageWidth - (paddingX * 2) + 20}" 
+              height="${bgHeight + 20}" 
+              rx="5" 
+            />
+            <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 5}" class="text">${formattedDateTime}</text>
+            <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 4 + 10}" class="text">${coordinatesText}</text>
+            <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 3 + 20}" class="text">${addressInfo.cep}</text>
+            <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 2 + 30}" class="text">${addressLine}</text>
+            <text x="${paddingX}" y="${imageHeight - paddingY - fontSize + 40}" class="text">${project.executingCompanyName || ""}</text>
+          </svg>
+        `;
 
         await sharp(tempFilePath)
             .composite([
@@ -161,7 +187,7 @@ function delay(ms) {
 
 exports.generatePhotoReport = async (req, res) => {
     const { projectId } = req.params;
-    const { startDate, endDate, isSavires = true } = req.query; 
+    const { startDate, endDate, isSavires = true } = req.query;
     const isHtmlRequest = req.path.endsWith("/html");
     const isPdfRequest = req.path.endsWith("/pdf");
     const createdBy = req.user?.id || "00000000-0000-0000-0000-000000000000";
@@ -234,8 +260,8 @@ exports.generatePhotoReport = async (req, res) => {
                 responsible: project.technicalResponsibility,
                 description: project.description,
                 logo: logoBase64,
-                isSavires: displaySaviresLogo, 
-                executingCompanyName: project.executingCompanyName, 
+                isSavires: displaySaviresLogo,
+                executingCompanyName: project.executingCompanyName,
                 photos: processedPhotos,
             },
         };
@@ -382,8 +408,8 @@ exports.generateCompletePhotoReport = async (req, res) => {
                 responsible: technicalResponsibleName,
                 description: project.description,
                 logo: logoBase64,
-                isSavires: displaySaviresLogo, 
-                executingCompanyName: project.executingCompanyName, 
+                isSavires: displaySaviresLogo,
+                executingCompanyName: project.executingCompanyName,
                 photos: processedPhotos,
             },
         };
