@@ -79,7 +79,7 @@ function formatDateTimeExact(dateString) {
         const hours = parseInt(timeParts[0], 10);
         const minutes = parseInt(timeParts[1], 10);
         
-        const formatted = `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year} ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        const formatted = `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year} - ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
         console.log("Formatted date:", formatted);
         return formatted;
     } catch (error) {
