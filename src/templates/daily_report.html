@@ -13,7 +13,7 @@
 
         @page {
             size: A4 portrait;
-            margin: 15mm 10mm 20mm 10mm;
+            margin: 15mm 10mm 25mm 10mm;
         }
 
         body {
@@ -28,7 +28,7 @@
             width: 100%;
             max-width: 190mm;
             margin: 0 auto;
-            padding-bottom: 25mm;
+            padding-bottom: 30mm;
             min-height: calc(100vh - 30mm);
             display: flex;
             flex-direction: column;
@@ -173,21 +173,20 @@
             padding-top: 2mm;
         }
 
-        .footer-container {
-            margin-top: auto;
-            padding-top: 20mm;
-            position: relative;
-            clear: both;
-        }
-
         footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
             font-size: 8pt;
             text-align: left;
             border-top: 0.75pt solid #ddd;
             padding-top: 3mm;
+            padding-bottom: 5mm;
             display: flex;
             align-items: center;
-            width: 100%;
+            background-color: white;
+            margin: 0 10mm;
         }
 
         footer .footer-logo {
@@ -219,6 +218,7 @@
                 max-width: none;
                 margin: 0;
                 padding: 5mm;
+                padding-bottom: 30mm;
             }
             
             section, table {
@@ -237,31 +237,11 @@
                 page-break-inside: avoid;
             }
 
-            .footer-container {
-                position: relative;
-                bottom: 0;
-                left: 0;
-                right: 0;
-            }
-            
-            @page {
-                @bottom-center {
-                    content: element(footer);
-                    margin-bottom: 0;
-                }
-            }
-            
-            @page:first {
-                @bottom-center {
-                    content: none;
-                    margin-bottom: 0;
-                }
-            }
-            
             footer {
                 position: fixed;
                 bottom: 0;
-                width: 100%;
+                width: calc(100% - 20mm);
+                background-color: white;
             }
         }
     </style>
@@ -483,21 +463,19 @@
             </div>
         </div>
     </div>
-</div>
 
 {{#showFooter diary.isSavires}}
-<div class="footer-container">
-    <footer>
-        <img class="footer-logo" src="{{diary.logo}}" alt="Logo da Empresa">
-        <div class="footer-info">
-            <p>88 99377-9889 | 88 99363-0999</p>
-            <p>salles_cavalcante@hotmail.com | saviresconstrucoes@gmail.com</p>
-            <p>Rua da Sub Estação, N° 25, Bairro Regis Diniz, Tianguá - CE</p>
-            <p>CNPJ: 22.346.772/0001-12</p>
-        </div>
-    </footer>
-</div>
+<footer>
+    <img class="footer-logo" src="{{diary.logo}}" alt="Logo da Empresa">
+    <div class="footer-info">
+        <p>88 99377-9889 | 88 99363-0999</p>
+        <p>contato@empresa.com | comercial@empresa.com</p>
+        <p>Rua da Sub Estação, N° 25, Bairro Regis Diniz, Tianguá - CE</p>
+        <p>CNPJ: 22.346.772/0001-12</p>
+    </div>
+</footer>
 {{/showFooter}}
 
 </body>
 </html>
+
