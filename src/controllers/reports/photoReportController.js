@@ -1,56 +1,56 @@
-const Project = require("../../models/Project");
-const Photo = require("../../models/Photo");
-const User = require("../../models/User");
-const Report = require("../../models/Report");
-const ReportService = require("../../services/reportService");
-const puppeteer = require("puppeteer");
-const path = require("path");
-const fs = require("fs");
-const Handlebars = require("handlebars");
-const { logoBase64 } = require("../../constants/logoConstants");
-const { Op } = require("sequelize");
+const Project = require("../../models/Project")
+const Photo = require("../../models/Photo")
+const User = require("../../models/User")
+const Report = require("../../models/Report")
+const ReportService = require("../../services/reportService")
+const puppeteer = require("puppeteer")
+const path = require("path")
+const fs = require("fs")
+const Handlebars = require("handlebars")
+const { logoBase64 } = require("../../constants/logoConstants")
+const { Op } = require("sequelize")
 
-const sharp = require("sharp");
-const axios = require("axios");
-const os = require("os");
-const { promisify } = require("util");
-const writeFileAsync = promisify(fs.writeFile);
-const unlinkAsync = promisify(fs.unlink);
+const sharp = require("sharp")
+const axios = require("axios")
+const os = require("os")
+const { promisify } = require("util")
+const writeFileAsync = promisify(fs.writeFile)
+const unlinkAsync = promisify(fs.unlink)
 
 if (!Handlebars.helpers.displayLogoOrText) {
-    Handlebars.registerHelper('displayLogoOrText', function (isSavires, logo, companyName) {
+    Handlebars.registerHelper("displayLogoOrText", (isSavires, logo, companyName) => {
         if (isSavires) {
-            return new Handlebars.SafeString(`<img class="header-logo" src="${logo}" alt="Logo da Empresa">`);
+            return new Handlebars.SafeString(`<img class="header-logo" src="${logo}" alt="Logo da Empresa">`)
         } else {
-            return new Handlebars.SafeString(`<div class="company-name-text">${companyName}</div>`);
+            return new Handlebars.SafeString(`<div class="company-name-text">${companyName}</div>`)
         }
-    });
+    })
 }
 
 if (!Handlebars.helpers.showFooter) {
-    Handlebars.registerHelper('showFooter', function (isSavires, options) {
+    Handlebars.registerHelper("showFooter", function (isSavires, options) {
         if (isSavires) {
-            return options.fn(this);
+            return options.fn(this)
         } else {
-            return '';
+            return ""
         }
-    });
+    })
 }
 
 if (!Handlebars.helpers.formatDate) {
-    Handlebars.registerHelper('formatDate', function (date) {
-        if (!date) return '';
+    Handlebars.registerHelper("formatDate", (date) => {
+        if (!date) return ""
 
         try {
-            const dateObj = new Date(date);
-            if (isNaN(dateObj.getTime())) return '';
+            const dateObj = new Date(date)
+            if (isNaN(dateObj.getTime())) return ""
 
-            return dateObj.toLocaleDateString('pt-BR');
+            return dateObj.toLocaleDateString("pt-BR")
         } catch (error) {
-            console.error('Error formatting date:', error);
-            return '';
+            console.error("Error formatting date:", error)
+            return ""
         }
-    });
+    })
 }
 
 function formatDateTimeExact(dateString) {
@@ -59,19 +59,32 @@ function formatDateTimeExact(dateString) {
     try {
         console.log("Processing date:", dateString)
 
-        const regex = /(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})/
-        const match = dateString.match(regex)
-
-        if (!match) {
-            console.log("Invalid date format:", dateString)
+        const parts = dateString.toString().split(" ")
+        if (parts.length < 2) {
+            console.log("Invalid date format (not enough parts):", dateString)
             return dateString
         }
 
-        const year = match[1]
-        const month = match[2]
-        const day = match[3]
-        const hours = match[4]
-        const minutes = match[5]
+        const datePart = parts[0] 
+        const timePart = parts[1] 
+
+        const datePieces = datePart.split("-")
+        if (datePieces.length !== 3) {
+            console.log("Invalid date format (date pieces):", datePart)
+            return dateString
+        }
+
+        const timePieces = timePart.split(":")
+        if (timePieces.length < 2) {
+            console.log("Invalid time format (time pieces):", timePart)
+            return dateString
+        }
+
+        const year = datePieces[0]
+        const month = datePieces[1]
+        const day = datePieces[2]
+        const hours = timePieces[0]
+        const minutes = timePieces[1]
 
         const formatted = `${day}/${month}/${year} - ${hours}:${minutes}`
         console.log("Formatted date:", formatted)
@@ -141,34 +154,34 @@ async function processImageWithOverlay(photo, project) {
             photo.latitude && photo.longitude ? `${photo.latitude.toFixed(6)}, ${photo.longitude.toFixed(6)}` : ""
 
         const svgText = `
-            <svg width="${imageWidth}" height="${imageHeight}">
-              <style>
-                .text-bg {
-                  fill: rgba(0,0,0,0.5);
-                }
-                .text {
-                  fill: white;
-                  font-size: ${fontSize}px;
-                  font-weight: bold;
-                  font-family: Arial, sans-serif;
-                  text-shadow: 2px 2px 3px rgba(0,0,0,0.8);
-                }
-              </style>
-              <rect 
-                class="text-bg" 
-                x="${paddingX - 10}" 
-                y="${imageHeight - paddingY - bgHeight - 10}" 
-                width="${imageWidth - (paddingX * 2) + 20}" 
-                height="${bgHeight + 20}" 
-                rx="5" 
-              />
-              <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 5}" class="text">${formattedDateTime}</text>
-              <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 4 + 10}" class="text">${coordinatesText}</text>
-              <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 3 + 20}" class="text">${addressInfo.cep}</text>
-              <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 2 + 30}" class="text">${addressLine}</text>
-              <text x="${paddingX}" y="${imageHeight - paddingY - fontSize + 40}" class="text">${project.executingCompanyName || ""}</text>
-            </svg>
-          `
+          <svg width="${imageWidth}" height="${imageHeight}">
+            <style>
+              .text-bg {
+                fill: rgba(0,0,0,0.5);
+              }
+              .text {
+                fill: white;
+                font-size: ${fontSize}px;
+                font-weight: bold;
+                font-family: Arial, sans-serif;
+                text-shadow: 2px 2px 3px rgba(0,0,0,0.8);
+              }
+            </style>
+            <rect 
+              class="text-bg" 
+              x="${paddingX - 10}" 
+              y="${imageHeight - paddingY - bgHeight - 10}" 
+              width="${imageWidth - (paddingX * 2) + 20}" 
+              height="${bgHeight + 20}" 
+              rx="5" 
+            />
+            <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 5}" class="text">${formattedDateTime}</text>
+            <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 4 + 10}" class="text">${coordinatesText}</text>
+            <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 3 + 20}" class="text">${addressInfo.cep}</text>
+            <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 2 + 30}" class="text">${addressLine}</text>
+            <text x="${paddingX}" y="${imageHeight - paddingY - fontSize + 40}" class="text">${project.executingCompanyName || ""}</text>
+          </svg>
+        `
 
         await sharp(tempFilePath)
             .composite([
@@ -192,43 +205,43 @@ async function processImageWithOverlay(photo, project) {
 }
 
 function delay(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 exports.generatePhotoReport = async (req, res) => {
-    const { projectId } = req.params;
-    const { startDate, endDate, isSavires = true } = req.query;
-    const isHtmlRequest = req.path.endsWith("/html");
-    const isPdfRequest = req.path.endsWith("/pdf");
-    const createdBy = req.user?.id || "00000000-0000-0000-0000-000000000000";
+    const { projectId } = req.params
+    const { startDate, endDate, isSavires = true } = req.query
+    const isHtmlRequest = req.path.endsWith("/html")
+    const isPdfRequest = req.path.endsWith("/pdf")
+    const createdBy = req.user?.id || "00000000-0000-0000-0000-000000000000"
 
-    const displaySaviresLogo = isSavires === 'true' || isSavires === true;
+    const displaySaviresLogo = isSavires === "true" || isSavires === true
 
     if (!isPdfRequest && !isHtmlRequest) {
-        return res.status(400).json({ message: "Formato de requisição inválido" });
+        return res.status(400).json({ message: "Formato de requisição inválido" })
     }
 
     try {
-        const project = await Project.findByPk(projectId);
+        const project = await Project.findByPk(projectId)
         if (!project) {
-            return res.status(404).json({ message: "Projeto não encontrado" });
+            return res.status(404).json({ message: "Projeto não encontrado" })
         }
 
-        const whereClause = { projectId };
+        const whereClause = { projectId }
 
         if (startDate || endDate) {
-            whereClause.captureDate = {};
+            whereClause.captureDate = {}
 
             if (startDate) {
-                const startDateObj = new Date(startDate);
-                startDateObj.setHours(0, 0, 0, 0);
-                whereClause.captureDate[Op.gte] = startDateObj;
+                const startDateObj = new Date(startDate)
+                startDateObj.setHours(0, 0, 0, 0)
+                whereClause.captureDate[Op.gte] = startDateObj
             }
 
             if (endDate) {
-                const endDateObj = new Date(endDate);
-                endDateObj.setHours(23, 59, 59, 999);
-                whereClause.captureDate[Op.lte] = endDateObj;
+                const endDateObj = new Date(endDate)
+                endDateObj.setHours(23, 59, 59, 999)
+                whereClause.captureDate[Op.lte] = endDateObj
             }
         }
 
@@ -239,17 +252,17 @@ exports.generatePhotoReport = async (req, res) => {
                 attributes: ["id", "username", "jobTitle"],
             },
             order: [["captureDate", "DESC"]],
-        });
+        })
 
         if (photos.length === 0) {
             return res.status(404).json({
                 message: "Nenhuma foto encontrada para o período especificado",
-            });
+            })
         }
 
-        const processedPhotos = [];
+        const processedPhotos = []
         for (const photo of photos) {
-            const processedUrl = await processImageWithOverlay(photo.toJSON(), project);
+            const processedUrl = await processImageWithOverlay(photo.toJSON(), project)
 
             processedPhotos.push({
                 url: processedUrl,
@@ -258,9 +271,9 @@ exports.generatePhotoReport = async (req, res) => {
                     `Foto capturada em ${new Date(photo.captureDate).toLocaleDateString("pt-BR")}` +
                     (photo.city ? ` - ${photo.city}/${photo.state}` : ""),
                 captureDate: photo.captureDate,
-            });
+            })
 
-            await delay(200);
+            await delay(200)
         }
 
         const reportData = {
@@ -274,20 +287,20 @@ exports.generatePhotoReport = async (req, res) => {
                 executingCompanyName: project.executingCompanyName,
                 photos: processedPhotos,
             },
-        };
+        }
 
-        const templatePath = path.join(__dirname, "../../templates/photo_report.html");
-        let templateSource = fs.readFileSync(templatePath, "utf8");
+        const templatePath = path.join(__dirname, "../../templates/photo_report.html")
+        const templateSource = fs.readFileSync(templatePath, "utf8")
 
-        const template = Handlebars.compile(templateSource);
-        const html = template(reportData);
+        const template = Handlebars.compile(templateSource)
+        const html = template(reportData)
 
-        const format = isHtmlRequest ? "html" : "pdf";
+        const format = isHtmlRequest ? "html" : "pdf"
         const dateRange =
             startDate && endDate
                 ? `_${new Date(startDate).toISOString().split("T")[0]}_a_${new Date(endDate).toISOString().split("T")[0]}`
-                : "";
-        const filename = ReportService.generateFilename(project.name, `fotos${dateRange}`, format);
+                : ""
+        const filename = ReportService.generateFilename(project.name, `fotos${dateRange}`, format)
 
         if (isHtmlRequest) {
             const report = await ReportService.uploadReport(
@@ -298,28 +311,28 @@ exports.generatePhotoReport = async (req, res) => {
                 filename,
                 "text/html",
                 createdBy,
-            );
+            )
             return res.status(200).json({
                 message: "Relatório fotográfico HTML gerado com sucesso",
                 reportUrl: report.url,
                 reportId: report.id,
-                isSavires: displaySaviresLogo
-            });
+                isSavires: displaySaviresLogo,
+            })
         }
 
         const browser = await puppeteer.launch({
             headless: true,
             args: ["--no-sandbox", "--disable-setuid-sandbox"],
-        });
-        const page = await browser.newPage();
+        })
+        const page = await browser.newPage()
 
         await page.setViewport({
             width: 1200,
             height: 1600,
             deviceScaleFactor: 2,
-        });
+        })
 
-        await page.setContent(html, { waitUntil: "networkidle0" });
+        await page.setContent(html, { waitUntil: "networkidle0" })
         const pdfBuffer = await page.pdf({
             format: "A4",
             printBackground: true,
@@ -327,9 +340,9 @@ exports.generatePhotoReport = async (req, res) => {
             displayHeaderFooter: false,
             scale: 0.75,
             preferCSSPageSize: false,
-        });
+        })
 
-        await browser.close();
+        await browser.close()
 
         const report = await ReportService.uploadReport(
             projectId,
@@ -339,37 +352,37 @@ exports.generatePhotoReport = async (req, res) => {
             filename,
             "application/pdf",
             createdBy,
-        );
+        )
 
         res.status(200).json({
             message: "Relatório fotográfico PDF gerado com sucesso",
             reportUrl: report.url,
             reportId: report.id,
-            isSavires: displaySaviresLogo
-        });
+            isSavires: displaySaviresLogo,
+        })
     } catch (error) {
-        console.error("Erro ao gerar o relatório fotográfico:", error);
-        res.status(500).json({ message: "Erro no servidor", error: error.message });
+        console.error("Erro ao gerar o relatório fotográfico:", error)
+        res.status(500).json({ message: "Erro no servidor", error: error.message })
     }
-};
+}
 
 exports.generateCompletePhotoReport = async (req, res) => {
-    const { projectId } = req.params;
-    const { isSavires = true } = req.query;
-    const isHtmlRequest = req.path.endsWith("/html");
-    const isPdfRequest = req.path.endsWith("/pdf");
-    const createdBy = req.user?.id || "00000000-0000-0000-0000-000000000000";
+    const { projectId } = req.params
+    const { isSavires = true } = req.query
+    const isHtmlRequest = req.path.endsWith("/html")
+    const isPdfRequest = req.path.endsWith("/pdf")
+    const createdBy = req.user?.id || "00000000-0000-0000-0000-000000000000"
 
-    const displaySaviresLogo = isSavires === 'true' || isSavires === true;
+    const displaySaviresLogo = isSavires === "true" || isSavires === true
 
     if (!isPdfRequest && !isHtmlRequest) {
-        return res.status(400).json({ message: "Formato de requisição inválido" });
+        return res.status(400).json({ message: "Formato de requisição inválido" })
     }
 
     try {
-        const project = await Project.findByPk(projectId);
+        const project = await Project.findByPk(projectId)
         if (!project) {
-            return res.status(404).json({ message: "Projeto não encontrado" });
+            return res.status(404).json({ message: "Projeto não encontrado" })
         }
 
         const photos = await Photo.findAll({
@@ -379,17 +392,17 @@ exports.generateCompletePhotoReport = async (req, res) => {
                 attributes: ["id", "username", "jobTitle"],
             },
             order: [["captureDate", "DESC"]],
-        });
+        })
 
         if (photos.length === 0) {
             return res.status(404).json({
                 message: "Nenhuma foto encontrada para este projeto",
-            });
+            })
         }
 
-        const processedPhotos = [];
+        const processedPhotos = []
         for (const photo of photos) {
-            const processedUrl = await processImageWithOverlay(photo.toJSON(), project);
+            const processedUrl = await processImageWithOverlay(photo.toJSON(), project)
 
             processedPhotos.push({
                 url: processedUrl,
@@ -398,16 +411,16 @@ exports.generateCompletePhotoReport = async (req, res) => {
                     `Foto capturada em ${new Date(photo.captureDate).toLocaleDateString("pt-BR")}` +
                     (photo.city ? ` - ${photo.city}/${photo.state}` : ""),
                 captureDate: photo.captureDate,
-            });
+            })
 
-            await delay(200);
+            await delay(200)
         }
 
-        let technicalResponsibleName = project.technicalResponsibility;
+        let technicalResponsibleName = project.technicalResponsibility
         if (project.technicalResponsibility) {
-            const technicalResponsible = await User.findByPk(project.technicalResponsibility);
+            const technicalResponsible = await User.findByPk(project.technicalResponsibility)
             if (technicalResponsible) {
-                technicalResponsibleName = technicalResponsible.username;
+                technicalResponsibleName = technicalResponsible.username
             }
         }
 
@@ -422,16 +435,16 @@ exports.generateCompletePhotoReport = async (req, res) => {
                 executingCompanyName: project.executingCompanyName,
                 photos: processedPhotos,
             },
-        };
+        }
 
-        const templatePath = path.join(__dirname, "../../templates/photo_report.html");
-        let templateSource = fs.readFileSync(templatePath, "utf8");
+        const templatePath = path.join(__dirname, "../../templates/photo_report.html")
+        const templateSource = fs.readFileSync(templatePath, "utf8")
 
-        const template = Handlebars.compile(templateSource);
-        const html = template(reportData);
+        const template = Handlebars.compile(templateSource)
+        const html = template(reportData)
 
-        const format = isHtmlRequest ? "html" : "pdf";
-        const filename = ReportService.generateFilename(project.name, `fotos_completo`, format);
+        const format = isHtmlRequest ? "html" : "pdf"
+        const filename = ReportService.generateFilename(project.name, `fotos_completo`, format)
 
         if (isHtmlRequest) {
             const report = await ReportService.uploadReport(
@@ -442,28 +455,28 @@ exports.generateCompletePhotoReport = async (req, res) => {
                 filename,
                 "text/html",
                 createdBy,
-            );
+            )
             return res.status(200).json({
                 message: "Relatório fotográfico completo HTML gerado com sucesso",
                 reportUrl: report.url,
                 reportId: report.id,
-                isSavires: displaySaviresLogo
-            });
+                isSavires: displaySaviresLogo,
+            })
         }
 
         const browser = await puppeteer.launch({
             headless: true,
             args: ["--no-sandbox", "--disable-setuid-sandbox"],
-        });
-        const page = await browser.newPage();
+        })
+        const page = await browser.newPage()
 
         await page.setViewport({
             width: 1200,
             height: 1600,
             deviceScaleFactor: 2,
-        });
+        })
 
-        await page.setContent(html, { waitUntil: "networkidle0" });
+        await page.setContent(html, { waitUntil: "networkidle0" })
         const pdfBuffer = await page.pdf({
             format: "A4",
             printBackground: true,
@@ -471,8 +484,8 @@ exports.generateCompletePhotoReport = async (req, res) => {
             displayHeaderFooter: false,
             scale: 0.75,
             preferCSSPageSize: false,
-        });
-        await browser.close();
+        })
+        await browser.close()
 
         const report = await ReportService.uploadReport(
             projectId,
@@ -482,30 +495,31 @@ exports.generateCompletePhotoReport = async (req, res) => {
             filename,
             "application/pdf",
             createdBy,
-        );
+        )
 
         res.status(200).json({
             message: "Relatório fotográfico completo PDF gerado com sucesso",
             reportUrl: report.url,
             reportId: report.id,
-            isSavires: displaySaviresLogo
-        });
+            isSavires: displaySaviresLogo,
+        })
     } catch (error) {
-        console.error("Erro ao gerar o relatório fotográfico completo:", error);
-        res.status(500).json({ message: "Erro no servidor", error: error.message });
+        console.error("Erro ao gerar o relatório fotográfico completo:", error)
+        res.status(500).json({ message: "Erro no servidor", error: error.message })
     }
-};
+}
 
 exports.getPhotoReports = async (req, res) => {
-    const { projectId } = req.params;
+    const { projectId } = req.params
     try {
         const reports = await Report.findAll({
             where: { projectId, type: "photo" },
             order: [["createdAt", "DESC"]],
-        });
-        res.status(200).json(reports);
+        })
+        res.status(200).json(reports)
     } catch (error) {
-        console.error("Erro ao buscar relatórios fotográficos:", error);
-        res.status(500).json({ message: "Erro no servidor", error: error.message });
+        console.error("Erro ao buscar relatórios fotográficos:", error)
+        res.status(500).json({ message: "Erro no servidor", error: error.message })
     }
-};
+}
+
