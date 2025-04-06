@@ -57,24 +57,34 @@ function formatDateTimeExact(dateString) {
     if (!dateString) return '';
 
     try {
+        console.log("Processing date:", dateString);
+        
         const parts = dateString.split(' ');
-        if (parts.length !== 2) return '';
+        if (parts.length !== 2) {
+            console.log("Invalid date format (parts):", dateString);
+            return dateString; 
+        }
 
         const dateParts = parts[0].split('-');
         const timeParts = parts[1].split(':');
 
-        if (dateParts.length !== 3 || timeParts.length < 2) return '';
+        if (dateParts.length !== 3 || timeParts.length < 2) {
+            console.log("Invalid date parts:", dateParts, "or time parts:", timeParts);
+            return dateString;
+        }
 
         const year = parseInt(dateParts[0], 10);
         const month = parseInt(dateParts[1], 10);
         const day = parseInt(dateParts[2], 10);
         const hours = parseInt(timeParts[0], 10);
         const minutes = parseInt(timeParts[1], 10);
-
-        return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year} ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        
+        const formatted = `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year} ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        console.log("Formatted date:", formatted);
+        return formatted;
     } catch (error) {
         console.error('Error formatting date:', error);
-        return '';
+        return dateString;
     }
 }
 
@@ -84,6 +94,12 @@ async function processImageWithOverlay(photo, project) {
             console.error("Foto sem URL S3:", photo.id);
             return photo.s3Url;
         }
+
+        console.log("Processing photo:", {
+            id: photo.id,
+            captureDate: photo.captureDate,
+            hasLatLong: !!(photo.latitude && photo.longitude)
+        });
 
         let addressInfo = {
             cep: project.cep || "",
@@ -102,7 +118,11 @@ async function processImageWithOverlay(photo, project) {
 
         await writeFileAsync(tempFilePath, imageBuffer);
 
-        const formattedDateTime = formatDateTimeExact(photo.captureDate);
+        let formattedDateTime = "Data não disponível";
+        if (photo.captureDate) {
+            formattedDateTime = formatDateTimeExact(photo.captureDate);
+            console.log("Formatted date for overlay:", formattedDateTime);
+        }
 
         const addressLine = [
             addressInfo.street,
@@ -132,7 +152,7 @@ async function processImageWithOverlay(photo, project) {
           <svg width="${imageWidth}" height="${imageHeight}">
             <style>
               .text-bg {
-                fill: rgba(0,0,0,0.0);
+                fill: rgba(0,0,0,0.5);
               }
               .text {
                 fill: white;
