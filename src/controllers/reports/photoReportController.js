@@ -59,24 +59,20 @@ function formatDateTimeExact(dateString) {
     try {
         console.log("Processing date:", dateString)
 
-        // Create a Date object from the input string
-        const dateObj = new Date(dateString)
+        const regex = /(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})/
+        const match = dateString.match(regex)
 
-        // Check if the date is valid
-        if (isNaN(dateObj.getTime())) {
-            console.log("Invalid date:", dateString)
+        if (!match) {
+            console.log("Invalid date format:", dateString)
             return dateString
         }
 
-        // Format the date in Brazilian format dd/mm/aaaa - hh:mm
-        // Pad with leading zeros where necessary
-        const day = String(dateObj.getDate()).padStart(2, "0")
-        const month = String(dateObj.getMonth() + 1).padStart(2, "0") // +1 because months are 0-indexed
-        const year = dateObj.getFullYear()
-        const hours = String(dateObj.getHours()).padStart(2, "0")
-        const minutes = String(dateObj.getMinutes()).padStart(2, "0")
+        const year = match[1]
+        const month = match[2]
+        const day = match[3]
+        const hours = match[4]
+        const minutes = match[5]
 
-        // Format exactly in Brazilian pattern dd/mm/aaaa - hh:mm
         const formatted = `${day}/${month}/${year} - ${hours}:${minutes}`
         console.log("Formatted date:", formatted)
         return formatted
