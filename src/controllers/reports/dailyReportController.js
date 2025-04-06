@@ -10,6 +10,35 @@ const Handlebars = require("handlebars")
 const { logoBase64 } = require("../../constants/logoConstants")
 const { Op } = require("sequelize")
 
+Handlebars.registerHelper("formatReportTitle", (projectName, date) => {
+    if (!projectName) return "Sem nome";
+    
+    let formattedDate = "";
+    if (date) {
+        try {
+            const dateObj = typeof date === 'string' && date.includes('/') 
+                ? new Date(date.split('/').reverse().join('-')) 
+                : new Date(date);
+            
+            if (!isNaN(dateObj.getTime())) {
+                const options = { 
+                    day: 'numeric', 
+                    month: 'long', 
+                    year: 'numeric' 
+                };
+                formattedDate = dateObj.toLocaleDateString('pt-BR', options);
+            } else {
+                formattedDate = date;
+            }
+        } catch (error) {
+            console.error("Erro ao formatar data do título:", error);
+            formattedDate = date;
+        }
+    }
+    
+    return `${projectName} - ${formattedDate}`;
+});
+
 Handlebars.registerHelper("displayLogoOrText", (isSavires, logo, companyName) => {
     if (isSavires) {
         return new Handlebars.SafeString(`<img class="header-logo" src="${logo}" alt="Logo da Empresa">`)
@@ -27,22 +56,25 @@ Handlebars.registerHelper("showFooter", function (isSavires, options) {
 })
 
 Handlebars.registerHelper("formatDate", (date) => {
-    if (!date) return ""
+    if (!date) return "";
 
     try {
         if (typeof date === "string" && date.includes("/")) {
-            return date
+            const parts = date.split("/");
+            if (parts.length === 3) {
+                return date;
+            }
         }
 
-        const dateObj = new Date(date)
-        if (isNaN(dateObj.getTime())) return ""
+        const dateObj = new Date(date);
+        if (isNaN(dateObj.getTime())) return "";
 
-        return dateObj.toLocaleDateString("pt-BR")
+        return dateObj.toLocaleDateString("pt-BR");
     } catch (error) {
-        console.error("Error formatting date:", error)
-        return ""
+        console.error("Erro ao formatar data:", error);
+        return "";
     }
-})
+});
 
 Handlebars.registerHelper("formatWeekNumber", (index) => index + 1)
 
@@ -631,4 +663,3 @@ exports.getDailyReportById = async (req, res) => {
         res.status(500).json({ message: "Erro no servidor", error: error.message })
     }
 }
-

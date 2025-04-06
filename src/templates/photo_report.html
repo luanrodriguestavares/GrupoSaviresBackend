@@ -125,8 +125,9 @@
         .photo-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1mm;
+            gap: 5mm;
             margin-bottom: 5mm;
+            page-break-inside: auto;
         }
 
         .photo-item {
@@ -161,12 +162,14 @@
         }
 
         .signature {
-            margin-top: 15mm;
+            margin-top: 20mm;
+            margin-bottom: 25mm;
             display: flex;
             justify-content: space-between;
             align-items: center;
             height: 15mm;
             text-align: center;
+            page-break-inside: avoid;
         }
         
         .signature-item {
@@ -182,10 +185,11 @@
             text-align: left;
             border-top: 0.75pt solid #ddd;
             padding-top: 3mm;
-            margin-top: 8mm;
-            padding-bottom: 8mm;
+            margin-top: 15mm;
+            padding-bottom: 5mm;
             display: flex;
             align-items: center;
+            clear: both;
         }
 
         footer .footer-logo {
@@ -266,7 +270,7 @@
         <header>
             {{displayLogoOrText report.isSavires report.logo report.executingCompanyName}}
             <div class="header-info">
-                <h1>Relatório Fotográfico</h1>
+                <h1>Relatório Fotográfico - {{formatReportTitle report.projectName report.date}}</h1>
                 <p><strong>Data:</strong> {{report.date}}</p>
                 <p><strong>Obra:</strong> {{report.projectName}}</p>
                 <p><strong>Responsável:</strong> {{report.responsible}}</p>
@@ -299,6 +303,7 @@
                 {{#each report.photos}}
                 <div class="photo-item">
                     <img src="{{this.url}}" alt="Foto da Obra">
+                    <p>{{this.caption}} - {{formatDateTime this.captureDate}}</p>
                 </div>
                 {{/each}}
             </div>
@@ -318,8 +323,8 @@
             <img class="footer-logo" src="{{report.logo}}" alt="Logo da Empresa">
             <div class="footer-info">
                 <p>88 99377-9889 | 88 99363-0999</p>
-                <p>contato@gruposavires.com | comercial@gruposavires.com</p>
-                <p>Rua Sub Estação, Nº 25, Bairro Regis Diniz, CEP 62322-468, Tianguá-CE</p>
+                <p>salles_cavalcante@hotmail.com | saviresconstrucoes@gmail.com</p>
+                <p>Rua da Sub Estação, N° 25, Bairro Regis Diniz, Tianguá - CE</p>
                 <p>CNPJ: 22.346.772/0001-12</p>
             </div>
         </footer>
@@ -327,4 +332,3 @@
     </div>
 </body>
 </html>
-

@@ -73,7 +73,7 @@ exports.uploadPhoto = async (req, res) => {
             size: fileSize,
             description,
             captureDate: captureDate ? new Date(captureDate) : new Date(),
-            company,
+            company: project.executingCompanyName,
             latitude: latitude ? Number.parseFloat(latitude) : null,
             longitude: longitude ? Number.parseFloat(longitude) : null,
             neighborhood: project.neighborhood,
@@ -121,7 +121,7 @@ exports.uploadSinglePhoto = async (req, res) => {
             size: req.file.transforms ? req.file.transforms[0].size : req.file.size,
             description: formData.description || null,
             captureDate: formData.captureDate ? new Date(formData.captureDate) : new Date(),
-            company: formData.company || null,
+            company: project.executingCompanyName, // Use the project's executing company name
             latitude: formData.latitude ? Number.parseFloat(formData.latitude) : null,
             longitude: formData.longitude ? Number.parseFloat(formData.longitude) : null,
             neighborhood: project.neighborhood,

@@ -17,6 +17,59 @@ const { promisify } = require("util");
 const writeFileAsync = promisify(fs.writeFile);
 const unlinkAsync = promisify(fs.unlink);
 
+if (!Handlebars.helpers.formatReportTitle) {
+    Handlebars.registerHelper("formatReportTitle", (projectName, date) => {
+        if (!projectName) return "Sem nome";
+        
+        let formattedDate = "";
+        if (date) {
+            try {
+                const dateObj = typeof date === 'string' && date.includes('/') 
+                    ? new Date(date.split('/').reverse().join('-')) 
+                    : new Date(date);
+                
+                if (!isNaN(dateObj.getTime())) {
+                    const options = { 
+                        day: 'numeric', 
+                        month: 'long', 
+                        year: 'numeric' 
+                    };
+                    formattedDate = dateObj.toLocaleDateString('pt-BR', options);
+                } else {
+                    formattedDate = date;
+                }
+            } catch (error) {
+                console.error("Erro ao formatar data do título:", error);
+                formattedDate = date;
+            }
+        }
+        
+        return `${projectName} - ${formattedDate}`;
+    });
+}
+
+if (!Handlebars.helpers.formatDateTime) {
+    Handlebars.registerHelper('formatDateTime', function (dateTime) {
+        if (!dateTime) return '';
+
+        try {
+            const dateObj = new Date(dateTime);
+            if (isNaN(dateObj.getTime())) return '';
+
+            return dateObj.toLocaleString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (error) {
+            console.error('Erro ao formatar data e hora:', error);
+            return '';
+        }
+    });
+}
+
 if (!Handlebars.helpers.displayLogoOrText) {
     Handlebars.registerHelper('displayLogoOrText', function (isSavires, logo, companyName) {
         if (isSavires) {
@@ -77,8 +130,16 @@ async function processImageWithOverlay(photo, project) {
 
         await writeFileAsync(tempFilePath, imageBuffer);
 
+        // Corrigir o formato da data e hora
         const captureDate = photo.captureDate ? new Date(photo.captureDate) : new Date();
-        const formattedDateTime = captureDate.toLocaleString("pt-BR");
+        const formattedDateTime = captureDate.toLocaleString("pt-BR", {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
 
         const addressLine = [
             addressInfo.street,
@@ -108,7 +169,7 @@ async function processImageWithOverlay(photo, project) {
         <svg width="${imageWidth}" height="${imageHeight}">
           <style>
             .text-bg {
-              fill: rgba(0,0,0,0.0);
+              fill: rgba(0,0,0,0.5);
             }
             .text {
               fill: white;
