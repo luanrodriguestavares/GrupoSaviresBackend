@@ -54,76 +54,71 @@ if (!Handlebars.helpers.formatDate) {
 }
 
 function formatDateTimeExact(dateString) {
-    if (!dateString) return '';
+    if (!dateString) return ""
 
     try {
-        console.log("Processing date:", dateString);
-        
-        // Extrair valores diretamente da string
-        const parts = dateString.split(' ');
-        if (parts.length !== 2) {
-            console.log("Invalid date format (parts):", dateString);
-            return dateString; 
+        console.log("Processing date:", dateString)
+
+        // Create a Date object from the input string
+        const dateObj = new Date(dateString)
+
+        // Check if the date is valid
+        if (isNaN(dateObj.getTime())) {
+            console.log("Invalid date:", dateString)
+            return dateString
         }
 
-        const dateParts = parts[0].split('-');
-        const timeParts = parts[1].split(':');
+        // Format the date in Brazilian format dd/mm/aaaa - hh:mm
+        // Pad with leading zeros where necessary
+        const day = String(dateObj.getDate()).padStart(2, "0")
+        const month = String(dateObj.getMonth() + 1).padStart(2, "0") // +1 because months are 0-indexed
+        const year = dateObj.getFullYear()
+        const hours = String(dateObj.getHours()).padStart(2, "0")
+        const minutes = String(dateObj.getMinutes()).padStart(2, "0")
 
-        if (dateParts.length !== 3 || timeParts.length < 2) {
-            console.log("Invalid date parts:", dateParts, "or time parts:", timeParts);
-            return dateString;
-        }
-
-        // Extrair componentes como strings
-        const year = dateParts[0];
-        const month = dateParts[1];
-        const day = dateParts[2];
-        const hours = timeParts[0];
-        const minutes = timeParts[1];
-        
-        // Formatar exatamente no padrão brasileiro dd/mm/aaaa - hh:mm
-        const formatted = `${day}/${month}/${year} - ${hours}:${minutes}`;
-        console.log("Formatted date:", formatted);
-        return formatted;
+        // Format exactly in Brazilian pattern dd/mm/aaaa - hh:mm
+        const formatted = `${day}/${month}/${year} - ${hours}:${minutes}`
+        console.log("Formatted date:", formatted)
+        return formatted
     } catch (error) {
-        console.error('Error formatting date:', error);
-        return dateString;
+        console.error("Error formatting date:", error)
+        return dateString
     }
 }
 
 async function processImageWithOverlay(photo, project) {
     try {
         if (!photo.s3Url) {
-            console.error("Foto sem URL S3:", photo.id);
-            return photo.s3Url;
+            console.error("Foto sem URL S3:", photo.id)
+            return photo.s3Url
         }
 
         console.log("Processing photo:", {
             id: photo.id,
             captureDate: photo.captureDate,
-            hasLatLong: !!(photo.latitude && photo.longitude)
-        });
+            hasLatLong: !!(photo.latitude && photo.longitude),
+        })
 
-        let addressInfo = {
+        const addressInfo = {
             cep: project.cep || "",
             street: project.address || "",
             neighborhood: project.neighborhood || "",
             city: project.city || "",
             state: project.uf || "",
             country: "Brasil",
-        };
+        }
 
-        const response = await axios.get(photo.s3Url, { responseType: "arraybuffer" });
-        const imageBuffer = Buffer.from(response.data);
+        const response = await axios.get(photo.s3Url, { responseType: "arraybuffer" })
+        const imageBuffer = Buffer.from(response.data)
 
-        const tempFilePath = path.join(os.tmpdir(), `temp_${path.basename(photo.s3Url)}`);
-        const outputFilePath = path.join(os.tmpdir(), `processed_${path.basename(photo.s3Url)}`);
+        const tempFilePath = path.join(os.tmpdir(), `temp_${path.basename(photo.s3Url)}`)
+        const outputFilePath = path.join(os.tmpdir(), `processed_${path.basename(photo.s3Url)}`)
 
-        await writeFileAsync(tempFilePath, imageBuffer);
+        await writeFileAsync(tempFilePath, imageBuffer)
 
-        let formattedDateTime = "Data não disponível";
+        let formattedDateTime = "Data não disponível"
         if (photo.captureDate) {
-            formattedDateTime = formatDateTimeExact(photo.captureDate);
+            formattedDateTime = formatDateTimeExact(photo.captureDate)
         }
 
         const addressLine = [
@@ -133,52 +128,51 @@ async function processImageWithOverlay(photo, project) {
             addressInfo.country,
         ]
             .filter(Boolean)
-            .join(", ");
+            .join(", ")
 
-        const metadata = await sharp(tempFilePath).metadata();
-        const imageWidth = metadata.width;
-        const imageHeight = metadata.height;
+        const metadata = await sharp(tempFilePath).metadata()
+        const imageWidth = metadata.width
+        const imageHeight = metadata.height
 
-        const fontSize = Math.max(imageWidth * 0.025, 19);
+        const fontSize = Math.max(imageWidth * 0.025, 19)
 
-        const paddingX = Math.max(imageWidth * 0.05, 30);
-        const paddingY = Math.max(imageHeight * 0.05, 30);
+        const paddingX = Math.max(imageWidth * 0.05, 30)
+        const paddingY = Math.max(imageHeight * 0.05, 30)
 
-        const bgHeight = fontSize * 7;
+        const bgHeight = fontSize * 7
 
-        const coordinatesText = photo.latitude && photo.longitude
-            ? `${photo.latitude.toFixed(6)}, ${photo.longitude.toFixed(6)}`
-            : "";
+        const coordinatesText =
+            photo.latitude && photo.longitude ? `${photo.latitude.toFixed(6)}, ${photo.longitude.toFixed(6)}` : ""
 
         const svgText = `
-          <svg width="${imageWidth}" height="${imageHeight}">
-            <style>
-              .text-bg {
-                fill: rgba(0,0,0,0.5);
-              }
-              .text {
-                fill: white;
-                font-size: ${fontSize}px;
-                font-weight: bold;
-                font-family: Arial, sans-serif;
-                text-shadow: 2px 2px 3px rgba(0,0,0,0.8);
-              }
-            </style>
-            <rect 
-              class="text-bg" 
-              x="${paddingX - 10}" 
-              y="${imageHeight - paddingY - bgHeight - 10}" 
-              width="${imageWidth - (paddingX * 2) + 20}" 
-              height="${bgHeight + 20}" 
-              rx="5" 
-            />
-            <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 5}" class="text">${formattedDateTime}</text>
-            <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 4 + 10}" class="text">${coordinatesText}</text>
-            <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 3 + 20}" class="text">${addressInfo.cep}</text>
-            <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 2 + 30}" class="text">${addressLine}</text>
-            <text x="${paddingX}" y="${imageHeight - paddingY - fontSize + 40}" class="text">${project.executingCompanyName || ""}</text>
-          </svg>
-        `;
+            <svg width="${imageWidth}" height="${imageHeight}">
+              <style>
+                .text-bg {
+                  fill: rgba(0,0,0,0.5);
+                }
+                .text {
+                  fill: white;
+                  font-size: ${fontSize}px;
+                  font-weight: bold;
+                  font-family: Arial, sans-serif;
+                  text-shadow: 2px 2px 3px rgba(0,0,0,0.8);
+                }
+              </style>
+              <rect 
+                class="text-bg" 
+                x="${paddingX - 10}" 
+                y="${imageHeight - paddingY - bgHeight - 10}" 
+                width="${imageWidth - (paddingX * 2) + 20}" 
+                height="${bgHeight + 20}" 
+                rx="5" 
+              />
+              <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 5}" class="text">${formattedDateTime}</text>
+              <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 4 + 10}" class="text">${coordinatesText}</text>
+              <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 3 + 20}" class="text">${addressInfo.cep}</text>
+              <text x="${paddingX}" y="${imageHeight - paddingY - fontSize * 2 + 30}" class="text">${addressLine}</text>
+              <text x="${paddingX}" y="${imageHeight - paddingY - fontSize + 40}" class="text">${project.executingCompanyName || ""}</text>
+            </svg>
+          `
 
         await sharp(tempFilePath)
             .composite([
@@ -187,17 +181,17 @@ async function processImageWithOverlay(photo, project) {
                     gravity: "southwest",
                 },
             ])
-            .toFile(outputFilePath);
+            .toFile(outputFilePath)
 
-        const processedImageBuffer = await fs.promises.readFile(outputFilePath);
+        const processedImageBuffer = await fs.promises.readFile(outputFilePath)
 
-        await unlinkAsync(tempFilePath);
-        await unlinkAsync(outputFilePath);
+        await unlinkAsync(tempFilePath)
+        await unlinkAsync(outputFilePath)
 
-        return `data:image/jpeg;base64,${processedImageBuffer.toString("base64")}`;
+        return `data:image/jpeg;base64,${processedImageBuffer.toString("base64")}`
     } catch (error) {
-        console.error("Error processing image:", error);
-        return photo.s3Url;
+        console.error("Error processing image:", error)
+        return photo.s3Url
     }
 }
 
