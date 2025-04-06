@@ -73,13 +73,13 @@ function formatDateTimeExact(dateString) {
             return dateString;
         }
 
-        const year = parseInt(dateParts[0], 10);
-        const month = parseInt(dateParts[1], 10);
-        const day = parseInt(dateParts[2], 10);
-        const hours = parseInt(timeParts[0], 10);
-        const minutes = parseInt(timeParts[1], 10);
+        const year = dateParts[0];
+        const month = dateParts[1];
+        const day = dateParts[2];
+        const hours = timeParts[0];
+        const minutes = timeParts[1];
         
-        const formatted = `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year} - ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        const formatted = `${day}/${month}/${year} - ${hours}:${minutes}`;
         console.log("Formatted date:", formatted);
         return formatted;
     } catch (error) {
