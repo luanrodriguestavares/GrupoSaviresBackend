@@ -1,7 +1,6 @@
 const jwt = require("jsonwebtoken")
 const { User } = require("../models")
 
-// Middleware para autenticação básica
 exports.authenticate = async (req, res, next) => {
     const token = req.header("Authorization")?.replace("Bearer ", "")
 
@@ -25,6 +24,13 @@ exports.authenticate = async (req, res, next) => {
 
         next()
     } catch (error) {
+        if (error.name === "TokenExpiredError") {
+            return res.status(401).json({
+                message: "Token expirado",
+                code: "TOKEN_EXPIRED",
+            })
+        }
+
         res.status(401).json({ message: "Token inválido" })
     }
 }
@@ -48,4 +54,3 @@ exports.isCommonOrEngineer = (req, res, next) => {
 exports.isAnyUser = (req, res, next) => {
     next()
 }
-

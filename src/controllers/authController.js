@@ -20,7 +20,7 @@ exports.login = async (req, res) => {
             return res.status(403).json({ message: "Desculpe, sua conta foi desativada" })
         }
 
-        const token = jwt.sign({ userId: user.id, userType: user.userType }, process.env.JWT_SECRET, { expiresIn: "3d" })
+        const token = jwt.sign({ userId: user.id, userType: user.userType }, process.env.JWT_SECRET, { expiresIn: "1d" })
 
         res.json({
             token,
@@ -30,6 +30,11 @@ exports.login = async (req, res) => {
                 userType: user.userType,
                 profilePicture: user.profilePicture,
                 cpfCnpj: user.cpfCnpj,
+                phoneNumber: user.phoneNumber,
+                jobTitle: user.jobTitle,
+                isActive: user.isActive,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt,
             },
         })
     } catch (error) {
@@ -65,24 +70,43 @@ exports.register = async (req, res) => {
 }
 
 exports.refreshToken = async (req, res) => {
-    const { token } = req.body;
+    const authHeader = req.header("Authorization")
+    const token = authHeader?.replace("Bearer ", "")
+
+    const tokenFromBody = req.body.token
+    const tokenToUse = token || tokenFromBody
+
+    if (!tokenToUse) {
+        return res.status(400).json({ message: "Token não fornecido" })
+    }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET, { ignoreExpiration: true });
-        const user = await User.findByPk(decoded.userId);
+        const decoded = jwt.verify(tokenToUse, process.env.JWT_SECRET, { ignoreExpiration: true })
+        const user = await User.findByPk(decoded.userId)
 
         if (!user || !user.isActive) {
-            return res.status(401).json({ message: "Usuário inválido" });
+            return res.status(401).json({ message: "Usuário inválido" })
         }
 
-        const newToken = jwt.sign(
-            { userId: user.id, userType: user.userType }, 
-            process.env.JWT_SECRET, 
-            { expiresIn: "1d" }
-        );
+        const newToken = jwt.sign({ userId: user.id, userType: user.userType }, process.env.JWT_SECRET, { expiresIn: "1d" })
 
-        res.json({ token: newToken });
+        res.json({
+            token: newToken,
+            user: {
+                id: user.id,
+                username: user.username,
+                userType: user.userType,
+                profilePicture: user.profilePicture,
+                cpfCnpj: user.cpfCnpj,
+                phoneNumber: user.phoneNumber,
+                jobTitle: user.jobTitle,
+                isActive: user.isActive,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt,
+            },
+        })
     } catch (error) {
-        res.status(401).json({ message: "Token inválido" });
+        console.error("Erro ao renovar token:", error)
+        res.status(401).json({ message: "Token inválido" })
     }
 }
