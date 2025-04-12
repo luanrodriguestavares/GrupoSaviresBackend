@@ -1,12 +1,7 @@
-const { DataTypes } = require("sequelize")
-const sequelize = require("../config/database")
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-const Message = sequelize.define("Message", {
-    id: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
-        primaryKey: true,
-    },
+const Message = sequelize.define('Message', {
     content: {
         type: DataTypes.TEXT,
         allowNull: false,
@@ -15,22 +10,16 @@ const Message = sequelize.define("Message", {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    timestamp: {
-        type: DataTypes.BIGINT,
-        allowNull: false,
-    },
     date: {
         type: DataTypes.DATEONLY,
         allowNull: false,
+        defaultValue: DataTypes.NOW,
     },
     time: {
         type: DataTypes.TIME,
         allowNull: false,
+        defaultValue: DataTypes.NOW,
     },
-    clientId: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-})
+});
 
-module.exports = Message
+module.exports = Message;
