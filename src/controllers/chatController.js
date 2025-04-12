@@ -1,4 +1,5 @@
 const { Message, User } = require("../models")
+const { v4: uuidv4 } = require("uuid")
 
 exports.getMessages = async (req, res) => {
     const { userId } = req.user
@@ -6,7 +7,7 @@ exports.getMessages = async (req, res) => {
     try {
         const messages = await Message.findAll({
             include: [{ model: User, attributes: ["id", "username"] }],
-            order: [["createdAt", "ASC"]],
+            order: [["timestamp", "ASC"]],
         })
 
         res.json(messages)
@@ -17,21 +18,25 @@ exports.getMessages = async (req, res) => {
 }
 
 exports.sendMessage = async (req, res) => {
-    const { content } = req.body
+    const { content, clientId } = req.body
     const { userId } = req.user
 
     try {
         const user = await User.findByPk(userId)
         const now = new Date()
-        
-        const brazilTime = new Date(now.getTime() - (3 * 60 * 60 * 1000))
-        
+
+        const brazilTime = new Date(now.getTime() - 3 * 60 * 60 * 1000)
+        const timestamp = Date.now()
+
         const newMessage = await Message.create({
+            id: uuidv4(),
             content,
             sender: user.username,
             UserId: user.id,
+            timestamp,
             date: brazilTime.toISOString().split("T")[0],
             time: brazilTime.toISOString().split("T")[1].split(".")[0],
+            clientId: clientId || `${userId}-${timestamp}`,
         })
 
         const messageWithUser = await Message.findByPk(newMessage.id, {
@@ -46,4 +51,3 @@ exports.sendMessage = async (req, res) => {
         res.status(500).json({ message: "Erro no servidor" })
     }
 }
-
