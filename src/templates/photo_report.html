@@ -13,7 +13,7 @@
 
         @page {
             size: A4 portrait;
-            margin: 15mm 10mm 25mm 10mm;
+            margin: 15mm 10mm 15mm 10mm;
         }
 
         body {
@@ -29,7 +29,6 @@
             width: 100%;
             max-width: 190mm;
             margin: 0 auto;
-            padding-bottom: 30mm;
         }
 
         h1 {
@@ -84,8 +83,12 @@
             margin-bottom: 5mm;
             border-bottom: 1pt solid #ddd;
             padding-bottom: 3mm;
+        }
+
+        .header-top {
             display: flex;
             align-items: center;
+            margin-bottom: 3mm;
         }
 
         .header-logo {
@@ -112,6 +115,20 @@
         }
 
         .header-info p {
+            margin-bottom: 0.5mm;
+        }
+
+        .header-contact {
+            font-size: 8pt;
+            color: #666;
+            border-top: 0.75pt solid #ddd;
+            padding-top: 2mm;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .header-contact p {
+            font-size: 8pt;
             margin-bottom: 0.5mm;
         }
 
@@ -183,39 +200,6 @@
             padding-top: 2mm;
         }
 
-        footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            font-size: 8pt;
-            text-align: left;
-            border-top: 0.75pt solid #ddd;
-            padding-top: 3mm;
-            margin-top: 8mm;
-            padding-bottom: 5mm;
-            display: flex;
-            align-items: center;
-            background-color: white;
-        }
-
-        footer .footer-logo {
-            max-width: 80mm;
-            max-height: 20mm;
-            margin-right: 5mm;
-            flex-shrink: 0;
-        }
-
-        footer .footer-info {
-            flex-grow: 1;
-        }
-
-        footer p {
-            font-size: 8pt;
-            margin-bottom: 1mm;
-            color: #666;
-        }
-
         @media print {
             body {
                 background-color: white;
@@ -227,7 +211,7 @@
                 width: 100%;
                 max-width: none;
                 margin: 0;
-                padding: 5mm 5mm 30mm 5mm;
+                padding: 5mm;
             }
             
             section, table {
@@ -257,26 +241,33 @@
                 page-break-inside: avoid;
                 break-inside: avoid;
             }
-            
-            footer {
-                position: fixed;
-                bottom: 0;
-                width: 100%;
-                background-color: white;
-            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            {{displayLogoOrText report.isSavires report.logo report.executingCompanyName}}
-            <div class="header-info">
-                <h1>Relatório Fotográfico</h1>
-                <p><strong>Data:</strong> {{report.date}}</p>
-                <p><strong>Obra:</strong> {{report.projectName}}</p>
-                <p><strong>Responsável:</strong> {{report.responsible}}</p>
+            <div class="header-top">
+                {{displayLogoOrText report.isSavires report.logo report.executingCompanyName}}
+                <div class="header-info">
+                    <h1>Relatório Fotográfico</h1>
+                    <p><strong>Data:</strong> {{report.date}}</p>
+                    <p><strong>Obra:</strong> {{report.projectName}}</p>
+                    <p><strong>Responsável:</strong> {{report.responsible}}</p>
+                </div>
             </div>
+            {{#showFooter report.isSavires}}
+            <div class="header-contact">
+                <div>
+                    <p>88 99377-9889 | 88 99363-0999</p>
+                    <p>salles_cavalcante@hotmail.com | saviresconstrucoes@gmail.com</p>
+                </div>
+                <div>
+                    <p>Rua Sub Estação, Nº 25, Bairro Regis Diniz, CEP 62322-468, Tianguá-CE</p>
+                    <p>CNPJ: 22.346.772/0001-12</p>
+                </div>
+            </div>
+            {{/showFooter}}
         </header>
 
         <section class="info">
@@ -322,17 +313,5 @@
             </div>
         </div>
     </div>
-
-    {{#showFooter report.isSavires}}
-    <footer>
-        <img class="footer-logo" src="{{report.logo}}" alt="Logo da Empresa">
-        <div class="footer-info">
-            <p>88 99377-9889 | 88 99363-0999</p>
-            <p>salles_cavalcante@hotmail.com | saviresconstrucoes@gmail.com</p>
-            <p>Rua Sub Estação, Nº 25, Bairro Regis Diniz, CEP 62322-468, Tianguá-CE</p>
-            <p>CNPJ: 22.346.772/0001-12</p>
-        </div>
-    </footer>
-    {{/showFooter}}
 </body>
 </html>
