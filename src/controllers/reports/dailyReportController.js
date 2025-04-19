@@ -63,6 +63,65 @@ Handlebars.registerHelper("weatherIcon", (condition) => {
     return new Handlebars.SafeString(icons[condition] || "")
 })
 
+function organizeTasksIntoWeeks(tasks) {
+    if (!tasks || tasks.length === 0) {
+        return [{ tasks: [{ date: "Não informado", description: "Não informado" }] }]
+    }
+
+    const sortedTasks = [...tasks].sort((a, b) => {
+        const dateA = new Date(a.date)
+        const dateB = new Date(b.date)
+        return dateA - dateB
+    })
+
+    const weeks = []
+    let currentWeek = []
+    
+    for (const task of sortedTasks) {
+        const taskDate = new Date(task.date)
+        
+        if (currentWeek.length === 0) {
+            const dayOfWeek = taskDate.getDay()
+            const daysToSubtract = dayOfWeek 
+            
+            const weekStartDate = new Date(taskDate)
+            weekStartDate.setDate(taskDate.getDate() - daysToSubtract)
+            
+            currentWeek.push({
+                ...task,
+                weekStart: weekStartDate.toISOString().split('T')[0]
+            })
+        } else {
+            const firstTaskDate = new Date(currentWeek[0].weekStart)
+            const weekEndDate = new Date(firstTaskDate)
+            weekEndDate.setDate(firstTaskDate.getDate() + 6)
+            
+            if (taskDate <= weekEndDate) {
+                currentWeek.push(task)
+            } else {
+                weeks.push({ tasks: [...currentWeek] })
+                
+                const dayOfWeek = taskDate.getDay()
+                const daysToSubtract = dayOfWeek
+                
+                const weekStartDate = new Date(taskDate)
+                weekStartDate.setDate(taskDate.getDate() - daysToSubtract)
+                
+                currentWeek = [{
+                    ...task,
+                    weekStart: weekStartDate.toISOString().split('T')[0]
+                }]
+            }
+        }
+    }
+    
+    if (currentWeek.length > 0) {
+        weeks.push({ tasks: currentWeek })
+    }
+    
+    return weeks
+}
+
 exports.generateDailyReport = async (req, res) => {
     const { projectId } = req.params
     const {
@@ -77,6 +136,8 @@ exports.generateDailyReport = async (req, res) => {
             afternoon: { sunny: false, cloudy: false, rainy: false, impracticable: false, notApplicable: true },
             night: { sunny: false, cloudy: false, rainy: false, impracticable: false, notApplicable: true },
         },
+        manualTasks = [], 
+        customSections = []
     } = req.body
 
     const isHtmlRequest = req.path.endsWith("/html")
@@ -140,240 +201,17 @@ exports.generateDailyReport = async (req, res) => {
                 displayPeriodStart = "Completo"
                 displayPeriodEnd = "Completo"
             }
-
-            const photoWhere = {
-                projectId,
-                captureDate: {
-                    [Op.gte]: startDate,
-                },
-            }
-
-            const photos = await Photo.findAll({
-                where: photoWhere,
-                order: [["captureDate", "ASC"]],
-                include: {
-                    model: User,
-                    attributes: ["id", "username", "jobTitle"],
-                },
-            })
-
-            const photosByDate = {}
-            photos.forEach((photo) => {
-                const date = new Date(photo.captureDate)
-                const dateStr = date.toISOString().split("T")[0]
-
-                if (!photosByDate[dateStr]) {
-                    photosByDate[dateStr] = []
-                }
-
-                photosByDate[dateStr].push(photo)
-            })
-
-            const tasks = []
-            Object.keys(photosByDate)
-                .sort()
-                .forEach((dateStr) => {
-                    const datePhotos = photosByDate[dateStr]
-                    const descriptions = datePhotos.map((photo) => photo.description).filter((desc) => desc && desc.trim() !== "")
-
-                    const uniqueDescriptions = [...new Set(descriptions)]
-                    const combinedDescription = uniqueDescriptions.join(" | ")
-
-                    tasks.push({
-                        date: dateStr,
-                        description: combinedDescription || "Não informado",
-                    })
-                })
-
-            const weeks = []
-            let currentWeek = []
-            let currentWeekStart = null
-
-            tasks.forEach((task) => {
-                const taskDate = new Date(task.date)
-
-                if (!currentWeekStart) {
-                    currentWeekStart = new Date(taskDate)
-                    currentWeek.push(task)
-                } else {
-                    const diffTime = Math.abs(taskDate - currentWeekStart)
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-                    if (diffDays <= 7) {
-                        currentWeek.push(task)
-                    } else {
-                        weeks.push({ tasks: [...currentWeek] })
-                        currentWeek = [task]
-                        currentWeekStart = new Date(taskDate)
-                    }
-                }
-            })
-
-            if (currentWeek.length > 0) {
-                weeks.push({ tasks: currentWeek })
-            }
-
-            let elapsedTime = ""
-            if (periodStart && periodEnd) {
-                const [startDay, startMonth, startYear] = periodStart.split("/").map(Number)
-                const [endDay, endMonth, endYear] = periodEnd.split("/").map(Number)
-
-                const start = new Date(startYear, startMonth - 1, startDay)
-                const end = new Date(endYear, endMonth - 1, endDay)
-
-                const diffTime = Math.abs(end - start)
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
-
-                elapsedTime = `${diffDays} dias`
-            } else if (isCompleteReport && project.startDate) {
-                const [startDay, startMonth, startYear] = project.startDate.split("/").map(Number)
-                const start = new Date(startYear, startMonth - 1, startDay)
-                const end = new Date()
-
-                const diffTime = Math.abs(end - start)
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-                elapsedTime = `${diffDays} dias (projeto completo)`
-            }
-
-            const team = []
-            if (project.Users && project.Users.length > 0) {
-                const roleCount = {}
-
-                project.Users.forEach((user) => {
-                    const role = user.jobTitle || (user.userType === "engineer" ? "Engenheiro" : "Encarregado")
-
-                    if (!roleCount[role]) {
-                        roleCount[role] = 0
-                    }
-
-                    roleCount[role]++
-                })
-
-                Object.keys(roleCount).forEach((role) => {
-                    team.push({
-                        role,
-                        quantity: roleCount[role],
-                    })
-                })
-            }
-
-            const shifts = {
-                morning: !weather.morning.notApplicable && !weather.morning.impracticable,
-                afternoon: !weather.afternoon.notApplicable && !weather.afternoon.impracticable,
-                night: !weather.night.notApplicable && !weather.night.impracticable,
-            }
-
-            const reportData = {
-                diary: {
-                    reportDate: new Date().toLocaleDateString("pt-BR"),
-                    projectName: project.name || "Não informado",
-                    responsible: responsibleName || "Não informado",
-                    description: project.description || "Não informado",
-                    artNumber: project.art || "Não informado",
-                    startDate: project.startDate || "Não informado",
-                    periodStart: displayPeriodStart,
-                    periodEnd: displayPeriodEnd,
-                    elapsedTime: elapsedTime || "Não informado",
-                    workdays: workdays || {
-                        sunday: false,
-                        monday: false,
-                        tuesday: false,
-                        wednesday: false,
-                        thursday: false,
-                        friday: false,
-                        saturday: false,
-                    },
-                    shifts: shifts,
-                    weather: weather || {
-                        morning: { sunny: false, cloudy: false, rainy: false, impracticable: false, notApplicable: true },
-                        afternoon: { sunny: false, cloudy: false, rainy: false, impracticable: false, notApplicable: true },
-                        night: { sunny: false, cloudy: false, rainy: false, impracticable: false, notApplicable: true },
-                    },
-                    weeks: weeks.length > 0 ? weeks : [{ tasks: [{ date: "Não informado", description: "Não informado" }] }],
-                    team: team.length > 0 ? team : [{ role: "Não informado", quantity: 0 }],
-                    equipment: equipment.length > 0 ? equipment : [{ description: "Não informado", quantity: 0 }],
-                    logo: logoBase64,
-                    isSavires: displaySaviresLogo,
-                    executingCompanyName: project.executingCompanyName || "Não informado",
-                },
-            }
-
-            const templatePath = path.join(__dirname, "../../templates/daily_report.html")
-            const templateSource = fs.readFileSync(templatePath, "utf8")
-
-            const template = Handlebars.compile(templateSource)
-            const html = template(reportData)
-
-            const format = isHtmlRequest ? "html" : "pdf"
-            const filename = ReportService.generateFilename(project.name, "daily-report", format)
-
-            if (isHtmlRequest) {
-                const report = await ReportService.uploadReport(
-                    projectId,
-                    "daily",
-                    html,
-                    format,
-                    filename,
-                    "text/html",
-                    createdBy
-                )
-                return res.status(200).json({
-                    message: "Relatório HTML gerado com sucesso",
-                    reportUrl: report.url,
-                    reportId: report.id,
-                    isSavires: displaySaviresLogo
-                })
-            }
-
-            const browser = await puppeteer.launch({
-                headless: true,
-                args: ["--no-sandbox", "--disable-setuid-sandbox"]
-            });
-            const page = await browser.newPage();
-
-            await page.setViewport({
-                width: 1200,
-                height: 1600,
-                deviceScaleFactor: 2
-            });
-
-            await page.setContent(html, { waitUntil: "networkidle0" });
-            const pdfBuffer = await page.pdf({
-                format: "A4",
-                printBackground: true,
-                margin: { top: "10mm", bottom: "10mm", left: "10mm", right: "10mm" },
-                displayHeaderFooter: false,
-                scale: 0.75,
-                preferCSSPageSize: false
-            });
-            await browser.close();
-
-            const report = await ReportService.uploadReport(
-                projectId,
-                "daily",
-                pdfBuffer,
-                "pdf",
-                filename,
-                "application/pdf",
-                createdBy
-            );
-
-            res.status(200).json({
-                message: "Relatório diário PDF gerado com sucesso",
-                reportUrl: report.url,
-                reportId: report.id,
-                isSavires: displaySaviresLogo
-            });
-
-            return
         }
 
         const photoWhere = {
             projectId,
             captureDate: {
-                [Op.between]: [startDate, endDate],
+                [Op.gte]: startDate,
             },
+        }
+
+        if (!isCompleteReport && endDate) {
+            photoWhere.captureDate[Op.lte] = endDate
         }
 
         const photos = await Photo.findAll({
@@ -410,36 +248,29 @@ exports.generateDailyReport = async (req, res) => {
                 tasks.push({
                     date: dateStr,
                     description: combinedDescription || "Não informado",
+                    source: "photo"
                 })
             })
 
-        const weeks = []
-        let currentWeek = []
-        let currentWeekStart = null
-
-        tasks.forEach((task) => {
-            const taskDate = new Date(task.date)
-
-            if (!currentWeekStart) {
-                currentWeekStart = new Date(taskDate)
-                currentWeek.push(task)
-            } else {
-                const diffTime = Math.abs(taskDate - currentWeekStart)
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-                if (diffDays <= 7) {
-                    currentWeek.push(task)
-                } else {
-                    weeks.push({ tasks: [...currentWeek] })
-                    currentWeek = [task]
-                    currentWeekStart = new Date(taskDate)
+        if (manualTasks && manualTasks.length > 0) {
+            manualTasks.forEach(task => {
+                if (task.date && task.description) {
+                    let dateStr = task.date
+                    if (dateStr.includes('/')) {
+                        const [day, month, year] = dateStr.split('/').map(Number)
+                        dateStr = new Date(year, month - 1, day).toISOString().split('T')[0]
+                    }
+                    
+                    tasks.push({
+                        date: dateStr,
+                        description: task.description,
+                        source: "manual"
+                    })
                 }
-            }
-        })
-
-        if (currentWeek.length > 0) {
-            weeks.push({ tasks: currentWeek })
+            })
         }
+
+        const weeks = organizeTasksIntoWeeks(tasks)
 
         let elapsedTime = ""
         if (periodStart && periodEnd) {
@@ -492,6 +323,13 @@ exports.generateDailyReport = async (req, res) => {
             night: !weather.night.notApplicable && !weather.night.impracticable,
         }
 
+        const formattedCustomSections = customSections && customSections.length > 0 
+            ? customSections.map(section => ({
+                title: section.title || "Seção Personalizada",
+                items: section.items || []
+            }))
+            : []
+
         const reportData = {
             diary: {
                 reportDate: new Date().toLocaleDateString("pt-BR"),
@@ -521,6 +359,7 @@ exports.generateDailyReport = async (req, res) => {
                 weeks: weeks.length > 0 ? weeks : [{ tasks: [{ date: "Não informado", description: "Não informado" }] }],
                 team: team.length > 0 ? team : [{ role: "Não informado", quantity: 0 }],
                 equipment: equipment.length > 0 ? equipment : [{ description: "Não informado", quantity: 0 }],
+                customSections: formattedCustomSections,
                 logo: logoBase64,
                 isSavires: displaySaviresLogo,
                 executingCompanyName: project.executingCompanyName || "Não informado",
@@ -554,7 +393,6 @@ exports.generateDailyReport = async (req, res) => {
             })
         }
 
-        // Gerar PDF
         const browser = await puppeteer.launch({
             headless: true,
             args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -631,4 +469,3 @@ exports.getDailyReportById = async (req, res) => {
         res.status(500).json({ message: "Erro no servidor", error: error.message })
     }
 }
-

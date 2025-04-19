@@ -189,6 +189,17 @@
             padding-top: 2mm;
         }
 
+        .custom-section {
+            margin-bottom: 8mm;
+            page-break-inside: auto;
+        }
+
+        .custom-section-item {
+            margin-bottom: 2mm;
+            padding: 2mm;
+            border-bottom: 0.5pt solid #eee;
+        }
+
         @media print {
             body {
                 background-color: white;
@@ -401,6 +412,28 @@
                         <tr class="day-entry">
                             <td>{{formatDate this.date}}</td>
                             <td>{{this.description}}</td>
+                        </tr>
+                        {{/each}}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        {{/each}}
+
+        {{#each diary.customSections}}
+        <section class="custom-section">
+            <h2>{{this.title}}</h2>
+            <div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#each this.items}}
+                        <tr>
+                            <td>{{this}}</td>
                         </tr>
                         {{/each}}
                     </tbody>
