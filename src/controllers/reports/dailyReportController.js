@@ -10,6 +10,38 @@ const Handlebars = require("handlebars")
 const { logoBase64 } = require("../../constants/logoConstants")
 const { Op } = require("sequelize")
 
+// Função auxiliar para validar datas
+function isValidDate(date) {
+    if (!date) return false
+
+    // Se for string no formato DD/MM/YYYY
+    if (typeof date === "string" && date.includes("/")) {
+        const [day, month, year] = date.split("/").map(Number)
+        const dateObj = new Date(year, month - 1, day)
+        return !isNaN(dateObj.getTime())
+    }
+
+    // Se for objeto Date
+    if (date instanceof Date) {
+        return !isNaN(date.getTime())
+    }
+
+    return false
+}
+
+// Função para converter string de data brasileira para objeto Date
+function parseBrazilianDate(dateString) {
+    if (!dateString || typeof dateString !== "string") return null
+
+    if (dateString.includes("/")) {
+        const [day, month, year] = dateString.split("/").map(Number)
+        const date = new Date(year, month - 1, day)
+        return isNaN(date.getTime()) ? null : date
+    }
+
+    return null
+}
+
 Handlebars.registerHelper("displayLogoOrText", (isSavires, logo, companyName) => {
     if (isSavires) {
         return new Handlebars.SafeString(`<img class="header-logo" src="${logo}" alt="Logo da Empresa">`)
@@ -184,20 +216,29 @@ exports.generateDailyReport = async (req, res) => {
         let displayPeriodEnd = ""
 
         if (periodStart && periodEnd) {
-            const [startDay, startMonth, startYear] = periodStart.split("/").map(Number)
-            const [endDay, endMonth, endYear] = periodEnd.split("/").map(Number)
+            // Validar as datas antes de usar
+            const parsedStartDate = parseBrazilianDate(periodStart)
+            const parsedEndDate = parseBrazilianDate(periodEnd)
 
-            startDate = new Date(startYear, startMonth - 1, startDay)
-            endDate = new Date(endYear, endMonth - 1, endDay)
+            if (!parsedStartDate || !parsedEndDate) {
+                return res.status(400).json({
+                    message: "Datas de período inválidas",
+                    error: "As datas fornecidas não estão em um formato válido (DD/MM/YYYY)",
+                })
+            }
+
+            startDate = parsedStartDate
+            endDate = parsedEndDate
+            endDate.setHours(23, 59, 59, 999)
 
             displayPeriodStart = periodStart
             displayPeriodEnd = periodEnd
-
-            endDate.setHours(23, 59, 59, 999)
         } else if (isCompleteReport) {
             if (project.startDate) {
-                const [startDay, startMonth, startYear] = project.startDate.split("/").map(Number)
-                startDate = new Date(startYear, startMonth - 1, startDay)
+                const parsedProjectStartDate = parseBrazilianDate(project.startDate)
+                if (parsedProjectStartDate) {
+                    startDate = parsedProjectStartDate
+                }
                 displayPeriodStart = "Completo"
                 displayPeriodEnd = "Completo"
             } else {
@@ -206,16 +247,23 @@ exports.generateDailyReport = async (req, res) => {
             }
         }
 
+        // Garantir que a data é válida antes de usar na consulta
         const photoWhere = {
             projectId,
-            captureDate: {
-                [Op.gte]: startDate,
-            },
         }
 
-        if (!isCompleteReport && endDate) {
-            photoWhere.captureDate[Op.lte] = endDate
+        // Só adicionar a condição de data se startDate for válida
+        if (isValidDate(startDate)) {
+            photoWhere.captureDate = {
+                [Op.gte]: startDate,
+            }
+
+            if (!isCompleteReport && isValidDate(endDate)) {
+                photoWhere.captureDate[Op.lte] = endDate
+            }
         }
+
+        console.log("Consulta de fotos com where:", JSON.stringify(photoWhere))
 
         const photos = await Photo.findAll({
             where: photoWhere,
@@ -277,25 +325,22 @@ exports.generateDailyReport = async (req, res) => {
 
         let elapsedTime = ""
         if (periodStart && periodEnd) {
-            const [startDay, startMonth, startYear] = periodStart.split("/").map(Number)
-            const [endDay, endMonth, endYear] = periodEnd.split("/").map(Number)
+            const parsedStartDate = parseBrazilianDate(periodStart)
+            const parsedEndDate = parseBrazilianDate(periodEnd)
 
-            const start = new Date(startYear, startMonth - 1, startDay)
-            const end = new Date(endYear, endMonth - 1, endDay)
-
-            const diffTime = Math.abs(end - start)
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
-
-            elapsedTime = `${diffDays} dias`
+            if (parsedStartDate && parsedEndDate) {
+                const diffTime = Math.abs(parsedEndDate - parsedStartDate)
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+                elapsedTime = `${diffDays} dias`
+            }
         } else if (isCompleteReport && project.startDate) {
-            const [startDay, startMonth, startYear] = project.startDate.split("/").map(Number)
-            const start = new Date(startYear, startMonth - 1, startDay)
-            const end = new Date()
-
-            const diffTime = Math.abs(end - start)
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-            elapsedTime = `${diffDays} dias (projeto completo)`
+            const parsedStartDate = parseBrazilianDate(project.startDate)
+            if (parsedStartDate) {
+                const end = new Date()
+                const diffTime = Math.abs(end - parsedStartDate)
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+                elapsedTime = `${diffDays} dias (projeto completo)`
+            }
         }
 
         const teamMembers = []
