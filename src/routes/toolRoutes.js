@@ -10,4 +10,3 @@ router.delete("/:toolId", authenticate, isEngineer, deleteTool)
 router.get("/", authenticate, isAnyUser, getTools)
 
 module.exports = router
-

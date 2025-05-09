@@ -10,18 +10,15 @@ const Handlebars = require("handlebars")
 const { logoBase64 } = require("../../constants/logoConstants")
 const { Op } = require("sequelize")
 
-// Função auxiliar para validar datas
 function isValidDate(date) {
     if (!date) return false
 
-    // Se for string no formato DD/MM/YYYY
     if (typeof date === "string" && date.includes("/")) {
         const [day, month, year] = date.split("/").map(Number)
         const dateObj = new Date(year, month - 1, day)
         return !isNaN(dateObj.getTime())
     }
 
-    // Se for objeto Date
     if (date instanceof Date) {
         return !isNaN(date.getTime())
     }
@@ -29,7 +26,6 @@ function isValidDate(date) {
     return false
 }
 
-// Função para converter string de data brasileira para objeto Date
 function parseBrazilianDate(dateString) {
     if (!dateString || typeof dateString !== "string") return null
 
@@ -171,6 +167,7 @@ exports.generateDailyReport = async (req, res) => {
             night: { sunny: false, cloudy: false, rainy: false, impracticable: false, notApplicable: true },
         },
         manualTasks = [],
+        photoTasks = [],
         customSections = [],
         team = [],
     } = req.body
@@ -216,7 +213,6 @@ exports.generateDailyReport = async (req, res) => {
         let displayPeriodEnd = ""
 
         if (periodStart && periodEnd) {
-            // Validar as datas antes de usar
             const parsedStartDate = parseBrazilianDate(periodStart)
             const parsedEndDate = parseBrazilianDate(periodEnd)
 
@@ -247,12 +243,10 @@ exports.generateDailyReport = async (req, res) => {
             }
         }
 
-        // Garantir que a data é válida antes de usar na consulta
         const photoWhere = {
             projectId,
         }
 
-        // Só adicionar a condição de data se startDate for válida
         if (isValidDate(startDate)) {
             photoWhere.captureDate = {
                 [Op.gte]: startDate,
@@ -302,6 +296,24 @@ exports.generateDailyReport = async (req, res) => {
                     source: "photo",
                 })
             })
+
+        if (photoTasks && photoTasks.length > 0) {
+            photoTasks.forEach((task) => {
+                if (task.date && task.description) {
+                    let dateStr = task.date
+                    if (dateStr.includes("/")) {
+                        const [day, month, year] = dateStr.split("/").map(Number)
+                        dateStr = new Date(year, month - 1, day).toISOString().split("T")[0]
+                    }
+
+                    tasks.push({
+                        date: dateStr,
+                        description: task.description,
+                        source: "photo",
+                    })
+                }
+            })
+        }
 
         if (manualTasks && manualTasks.length > 0) {
             manualTasks.forEach((task) => {
